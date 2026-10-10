@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Vehicle, IVehicle } from '../../models/Vehicle.js';
 import { Driver } from '../../models/Driver.js';
+import { Subscription } from '../../models/Subscription.js';
 import { CreateVehicleInput, UpdateVehicleInput, VehicleQueryInput } from './vehicle.validator.js';
 
 export class VehicleService {
@@ -85,6 +86,18 @@ export class VehicleService {
 
     if (existing) {
       throw new Error(`Vehicle with registration number "${regNumber}" already exists in your fleet.`);
+    }
+
+    // Enforce subscription plan vehicle limit if an active subscription exists
+    const sub = await Subscription.findOne({ companyId, status: { $in: ['ACTIVE', 'TRIAL'] } }).populate('planId');
+    if (sub && sub.planId) {
+      const plan = sub.planId as any;
+      if (typeof plan.maxVehicles === 'number') {
+        const currentCount = await Vehicle.countDocuments({ companyId, isArchived: false });
+        if (currentCount >= plan.maxVehicles) {
+          throw new Error(`Vehicle limit reached for your ${plan.name} plan (Max: ${plan.maxVehicles} vehicles). Upgrade your plan to add more fleet vehicles.`);
+        }
+      }
     }
 
     // Verify driver assignment if supplied

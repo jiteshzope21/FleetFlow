@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { User } from '../models/User.js';
+import { Company } from '../models/Company.js';
 import { errorResponse } from '../utils/apiResponse.js';
 
 export async function authenticate(
@@ -48,6 +49,13 @@ export async function authenticate(
 
     req.user = user;
     if (user.companyId) {
+      if (user.role !== 'SUPER_ADMIN') {
+        const company = await Company.findById(user.companyId);
+        if (company && company.status === 'SUSPENDED') {
+          errorResponse(res, 'Your company workspace is currently suspended. Please contact platform support.', 403);
+          return;
+        }
+      }
       req.companyId = user.companyId;
     }
 

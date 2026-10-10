@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, Sun, Moon, LogOut, Bell, CheckCircle2, AlertCircle, Building, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.js';
 import { useTheme } from '../../contexts/ThemeContext.js';
@@ -18,6 +19,29 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
     storageType?: string;
     isPersistent?: boolean;
   } | null>(null);
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifOpen, setNotifOpen] = useState<boolean>(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      setNotifications(res.data?.data || []);
+    } catch {
+      // ignore
+    }
+  };
+
+  const markAllRead = async () => {
+    try {
+      await api.post('/notifications/read-all');
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch {
+      // ignore
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
     const fetchHealth = async () => {
@@ -110,16 +134,71 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
           {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
         </button>
 
-        {/* Notifications Foundation */}
-        <button
-          aria-label="Notifications"
-          className="rounded-lg p-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
-        </button>
+        {/* Notifications Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setNotifOpen(!notifOpen);
+              if (!notifOpen) fetchNotifications();
+            }}
+            aria-label="Notifications"
+            className="rounded-lg p-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-4 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                <span className="text-xs font-bold text-slate-900 dark:text-white">In-App Notifications</span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-[10px] text-brand-600 font-bold hover:underline"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-4 italic">No new notifications</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      className={`p-2.5 rounded-xl text-xs space-y-0.5 border ${
+                        n.isRead
+                          ? 'bg-slate-50 dark:bg-slate-900/40 border-slate-100 dark:border-slate-800/40 opacity-70'
+                          : 'bg-brand-50/50 dark:bg-brand-950/20 border-brand-200 dark:border-brand-900/40'
+                      }`}
+                    >
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-[11px]">{n.title}</p>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">{n.message}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+
+        {/* Super Admin Quick Link */}
+        {user?.role === 'SUPER_ADMIN' && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 shadow-md shadow-rose-900/30 transition-all"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>Super Admin</span>
+          </Link>
+        )}
 
         {/* User Info & Role */}
         <div className="flex items-center gap-2.5 pl-1">

@@ -17,10 +17,21 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // If already authenticated, redirect to appropriate console
+  React.useEffect(() => {
+    if (user) {
+      if (user.role === 'SUPER_ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [user, navigate]);
 
   const isExpired = searchParams.get('expired') === 'true';
   const prefilledEmail = searchParams.get('email') || '';
@@ -39,8 +50,12 @@ export const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setServerError(null);
-      await login(data.email, data.password);
-      navigate('/');
+      const loggedUser = await login(data.email, data.password);
+      if (loggedUser?.role === 'SUPER_ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setServerError(
         err.response?.data?.error ||
@@ -114,7 +129,7 @@ export const LoginPage: React.FC = () => {
         </Button>
       </form>
 
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-center space-y-2">
         <p className="text-xs text-slate-500 dark:text-slate-400">
           Don't have a workspace yet?{' '}
           <Link
@@ -122,6 +137,17 @@ export const LoginPage: React.FC = () => {
             className="font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 transition-colors"
           >
             Register Transport Company
+          </Link>
+        </p>
+
+        <p className="text-xs text-slate-500 dark:text-slate-400 pt-1">
+          Platform Administrator?{' '}
+          <Link
+            to="/admin/login"
+            className="font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 transition-colors inline-flex items-center gap-1"
+          >
+            <span>Super Admin Login</span>
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </p>
       </div>

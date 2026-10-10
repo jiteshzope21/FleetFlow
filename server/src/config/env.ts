@@ -38,4 +38,8 @@ export const ENV = {
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10),
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
   DNS_SERVERS: process.env.DNS_SERVERS || '',
+  ADMIN_SETUP_SECRET: process.env.ADMIN_SETUP_SECRET || 'FleetFlowSuperSecretSetupToken2026!',
+  SUPER_ADMIN_EMAIL: (process.env.SUPER_ADMIN_EMAIL || 'superadmin@fleetflow.local').toLowerCase().trim(),
+  SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD || 'FleetFlowAdmin2026!',
+  SUPER_ADMIN_NAME: (process.env.SUPER_ADMIN_NAME || 'FleetFlow Platform Admin').trim(),
 };

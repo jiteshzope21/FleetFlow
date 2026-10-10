@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { Company, ICompany } from '../../models/Company.js';
 import { User, IUser } from '../../models/User.js';
+import { Plan } from '../../models/Plan.js';
+import { Subscription } from '../../models/Subscription.js';
 import { PasswordResetToken } from '../../models/PasswordResetToken.js';
 import { ENV } from '../../config/env.js';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt.js';
@@ -74,6 +76,27 @@ export class AuthService {
       company.ownerId = user._id as any;
       await company.save();
 
+      // Initialize 14-day trial subscription if plans exist
+      try {
+        const defaultPlan = (await Plan.findOne({ code: 'STARTER' })) || (await Plan.findOne());
+        if (defaultPlan) {
+          const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+          await Subscription.create({
+            companyId: company._id,
+            planId: defaultPlan._id,
+            planCode: defaultPlan.code,
+            status: 'TRIAL',
+            billingCycle: 'MONTHLY',
+            startDate: new Date(),
+            endDate: trialEndsAt,
+            trialEndsAt,
+            autoRenew: true,
+          });
+        }
+      } catch {
+        // non-blocking subscription creation
+      }
+
       // Generate tokens
       const tokenPayload = {
         userId: user._id.toString(),
@@ -108,6 +131,7 @@ export class AuthService {
       // Rollback: delete orphaned company document if user creation failed
       try {
         await Company.findByIdAndDelete(company._id);
+        await Subscription.deleteMany({ companyId: company._id });
         logger.info(`Rolled back orphaned company ${company._id} due to user creation error`);
       } catch (cleanupErr) {
         logger.error('Failed to cleanup company after registration failure:', cleanupErr);

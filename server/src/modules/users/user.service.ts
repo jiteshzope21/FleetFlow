@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { User, IUser, UserRole } from '../../models/User.js';
+import { Subscription } from '../../models/Subscription.js';
 import { CreateUserInput, UpdateUserInput, UserQueryInput } from './user.validator.js';
 import { ENV } from '../../config/env.js';
 
@@ -72,6 +73,18 @@ export class UserService {
     const existing = await User.findOne({ email: input.email });
     if (existing) {
       throw new Error('A user with this email address already exists.');
+    }
+
+    // Enforce subscription plan user limit if an active subscription exists
+    const sub = await Subscription.findOne({ companyId, status: { $in: ['ACTIVE', 'TRIAL'] } }).populate('planId');
+    if (sub && sub.planId) {
+      const plan = sub.planId as any;
+      if (typeof plan.maxUsers === 'number') {
+        const currentCount = await User.countDocuments({ companyId, status: 'ACTIVE' });
+        if (currentCount >= plan.maxUsers) {
+          throw new Error(`User limit reached for your ${plan.name} plan (Max: ${plan.maxUsers} users). Upgrade your plan to add more team members.`);
+        }
+      }
     }
 
     const passwordHash = await bcrypt.hash(input.password, ENV.BCRYPT_SALT_ROUNDS);

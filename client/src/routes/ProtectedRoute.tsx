@@ -25,6 +25,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
   }
 
   if (!isAuthenticated) {
+    if (allowedRoles && allowedRoles.includes('SUPER_ADMIN')) {
+      return <Navigate to="/admin/login" replace />;
+    }
     return <Navigate to="/login" replace />;
   }
 

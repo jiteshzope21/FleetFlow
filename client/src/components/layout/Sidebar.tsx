@@ -16,6 +16,9 @@ import {
   ShieldAlert,
   ChevronRight,
   Layers,
+  FileText,
+  LifeBuoy,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.js';
 import { Badge } from '../ui/Badge.js';
@@ -36,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const operationsNavItems = [
     { label: 'Shipments & Orders', href: '/shipments', icon: Package },
     { label: 'Trips & Dispatch', href: '/trips', icon: Navigation },
+    { label: 'Invoices & Billing', href: '/invoices', icon: FileText },
   ];
 
   const fleetNavItems = [
@@ -55,6 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const administrationNavItems = [
     { label: 'Team & Users', href: '/users', icon: Users },
     { label: 'Company Profile', href: '/company/profile', icon: Building2 },
+    { label: 'Support & Tickets', href: '/support', icon: LifeBuoy },
     { label: 'My Account', href: '/settings/account', icon: User },
   ];
 
@@ -255,6 +260,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               })}
             </nav>
           </div>
+
+          {/* Super Admin Quick Access (Only visible for SUPER_ADMIN role) */}
+          {user?.role === 'SUPER_ADMIN' && (
+            <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+              <div className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                Platform Administration
+              </div>
+              <NavLink
+                to="/admin"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-500/20 transition-all group"
+              >
+                <ShieldCheck className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                <span>Super Admin Console</span>
+              </NavLink>
+            </div>
+          )}
         </div>
 
         {/* Tenant Profile Footer */}

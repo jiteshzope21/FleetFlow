@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Vehicle } from '../../models/Vehicle.js';
 import { Shipment } from '../../models/Shipment.js';
 import { Trip } from '../../models/Trip.js';
+import { AITelemetry } from '../../models/AITelemetry.js';
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -65,6 +66,7 @@ export class AiService {
       fuel_price_per_liter: params.fuelPricePerLiter || 92.5,
     };
 
+    const startTime = Date.now();
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -78,6 +80,17 @@ export class AiService {
 
       if (res.ok) {
         const data = (await res.json()) as any;
+        try {
+          await AITelemetry.create({
+            endpoint: '/predict/trip-cost',
+            durationMs: Date.now() - startTime,
+            success: true,
+            usedFallback: false,
+            modelVersion: '1.0.0-gradient-boost',
+          });
+        } catch {
+          // ignore telemetry write errors
+        }
         return {
           source: 'FastAPI Gradient Boosting Model',
           ...data,
@@ -99,6 +112,18 @@ export class AiService {
     const estDriver = 400 + payload.distance_km * 3.2;
     const estWear = payload.distance_km * (1.8 * vFactor);
     const total = Math.max(500, estFuel + estTolls + estDriver + estWear);
+
+    try {
+      await AITelemetry.create({
+        endpoint: '/predict/trip-cost',
+        durationMs: Date.now() - startTime,
+        success: true,
+        usedFallback: true,
+        modelVersion: '1.0.0-embedded',
+      });
+    } catch {
+      // ignore telemetry write errors
+    }
 
     return {
       source: 'FleetFlow Deterministic Fallback Engine',

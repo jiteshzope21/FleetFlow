@@ -221,7 +221,7 @@ export const RegisterCompanyPage: React.FC = () => {
         </Button>
       </form>
 
-      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 text-center">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 text-center space-y-1.5">
         <p className="text-xs text-slate-500 dark:text-slate-400">
           Already registered?{' '}
           <Link
@@ -229,6 +229,15 @@ export const RegisterCompanyPage: React.FC = () => {
             className="font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 transition-colors"
           >
             Sign In to Existing Workspace
+          </Link>
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Platform Administrator?{' '}
+          <Link
+            to="/admin/login"
+            className="font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 transition-colors"
+          >
+            Super Admin Login
           </Link>
         </p>
       </div>

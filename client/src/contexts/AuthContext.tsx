@@ -8,7 +8,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<IUser>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   updateCompanyState: (company: ICompany) => void;
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchCurrentUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<IUser> => {
     const res = await api.post('/auth/login', { email, password });
     if (res.data?.success) {
       const { user, company, accessToken } = res.data.data;
@@ -60,7 +60,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(accessToken);
       setUser(user);
       setCompany(company);
+      return user;
     }
+    throw new Error(res.data?.error || res.data?.message || 'Authentication failed');
   };
 
   const register = async (data: any) => {

@@ -39,3 +39,7 @@ export function validateRequest(schemas: ValidationSchemas) {
     }
   };
 }
+
+export function validate(schema: ZodSchema) {
+  return validateRequest({ body: schema });
+}

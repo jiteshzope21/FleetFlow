@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
   Users,
   Building2,
@@ -28,6 +28,11 @@ import { formatDateTime, formatCurrency } from '../../lib/utils.js';
 
 export const DashboardPage: React.FC = () => {
   const { user, company } = useAuth();
+
+  if (user?.role === 'SUPER_ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+
   const [overview, setOverview] = useState<any>(null);
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

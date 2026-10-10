@@ -4,6 +4,7 @@ import { connectDB, disconnectDB } from './config/db.js';
 import { ENV } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { isPortAvailable, formatPortConflictMessage } from './utils/port.js';
+import { seedSuperAdminAccount } from './scripts/seedSuperAdmin.js';
 
 let isShuttingDown = false;
 
@@ -19,7 +20,14 @@ async function bootstrap() {
     // 2. Connect to database (MongoDB Atlas or Dev fallback)
     await connectDB();
 
-    // 3. Start HTTP server
+    // 3. Ensure configured Super Admin account exists and default plans are seeded
+    try {
+      await seedSuperAdminAccount();
+    } catch (seedErr) {
+      logger.warn('Failed to ensure Super Admin initialization on startup:', seedErr);
+    }
+
+    // 4. Start HTTP server
     const server = app.listen(ENV.PORT, () => {
       logger.info(`FleetFlow Server is listening on port ${ENV.PORT} [${ENV.NODE_ENV}]`);
       logger.info(`Health check: http://localhost:${ENV.PORT}/api/health`);

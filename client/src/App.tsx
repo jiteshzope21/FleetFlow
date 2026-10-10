@@ -29,6 +29,24 @@ import { ShipmentListPage } from './features/shipments/ShipmentListPage.js';
 import { TripListPage } from './features/trips/TripListPage.js';
 import { AIInsightsPage } from './features/ai/AIInsightsPage.js';
 import { ReportsPage } from './features/reports/ReportsPage.js';
+import { InvoiceListPage } from './features/invoices/InvoiceListPage.js';
+import { SupportTicketsPage } from './features/support/SupportTicketsPage.js';
+
+// Super Admin Portal Feature Pages
+import { AdminLoginPage } from './features/admin/AdminLoginPage.js';
+import { SuperAdminLayout } from './features/admin/SuperAdminLayout.js';
+import { AdminOverviewPage } from './features/admin/AdminOverviewPage.js';
+import { AdminCompaniesPage } from './features/admin/AdminCompaniesPage.js';
+import { AdminUsersPage } from './features/admin/AdminUsersPage.js';
+import { AdminPlansPage } from './features/admin/AdminPlansPage.js';
+import { AdminSubscriptionsPage } from './features/admin/AdminSubscriptionsPage.js';
+import { AdminAnalyticsPage } from './features/admin/AdminAnalyticsPage.js';
+import { AdminAIMonitoringPage } from './features/admin/AdminAIMonitoringPage.js';
+import { AdminSupportPage } from './features/admin/AdminSupportPage.js';
+import { AdminAnnouncementsPage } from './features/admin/AdminAnnouncementsPage.js';
+import { AdminAuditLogsPage } from './features/admin/AdminAuditLogsPage.js';
+import { AdminHealthPage } from './features/admin/AdminHealthPage.js';
+import { AdminSettingsPage } from './features/admin/AdminSettingsPage.js';
 
 // Status Pages
 import { UnauthorizedPage } from './pages/UnauthorizedPage.js';
@@ -48,7 +66,10 @@ export function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
             </Route>
 
-            {/* Protected Workspace Routes */}
+            {/* Dedicated Super Admin Login Entry Point */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+
+            {/* Protected Workspace Tenant Routes */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<DashboardPage />} />
@@ -60,15 +81,37 @@ export function App() {
                 <Route path="/fuel" element={<FuelListPage />} />
                 <Route path="/expenses" element={<ExpenseListPage />} />
 
-                {/* Phase 3 & 4 Routes */}
+                {/* Operations & Finance */}
                 <Route path="/shipments" element={<ShipmentListPage />} />
                 <Route path="/trips" element={<TripListPage />} />
+                <Route path="/invoices" element={<InvoiceListPage />} />
+                <Route path="/support" element={<SupportTicketsPage />} />
+
+                {/* Intelligence & Analytics */}
                 <Route path="/ai-insights" element={<AIInsightsPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
 
                 <Route path="/users" element={<UserListPage />} />
                 <Route path="/company/profile" element={<CompanyProfilePage />} />
                 <Route path="/settings/account" element={<UserProfilePage />} />
+              </Route>
+            </Route>
+
+            {/* Protected Super Admin Platform Administration Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']} />}>
+              <Route path="/admin" element={<SuperAdminLayout />}>
+                <Route index element={<AdminOverviewPage />} />
+                <Route path="companies" element={<AdminCompaniesPage />} />
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="plans" element={<AdminPlansPage />} />
+                <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
+                <Route path="analytics" element={<AdminAnalyticsPage />} />
+                <Route path="ai-monitoring" element={<AdminAIMonitoringPage />} />
+                <Route path="support" element={<AdminSupportPage />} />
+                <Route path="announcements" element={<AdminAnnouncementsPage />} />
+                <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+                <Route path="health" element={<AdminHealthPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
               </Route>
             </Route>
 

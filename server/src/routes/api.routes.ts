@@ -14,6 +14,11 @@ import { shipmentRouter } from '../modules/shipments/shipment.routes.js';
 import { tripRouter } from '../modules/trips/trip.routes.js';
 import { reportRouter } from '../modules/reports/report.routes.js';
 import { aiRouter } from '../modules/ai/ai.routes.js';
+import { adminRouter } from '../modules/admin/admin.routes.js';
+import { invoiceRouter } from '../modules/invoices/invoice.routes.js';
+import { notificationRouter } from '../modules/notifications/notification.routes.js';
+import { supportRouter } from '../modules/support/support.routes.js';
+import { tenantAnnouncementRouter } from '../modules/announcements/announcement.routes.js';
 
 export const apiRouter = Router();
 
@@ -49,6 +54,7 @@ apiRouter.get('/health', (_req, res) => {
 
 // Module routes
 apiRouter.use('/auth', authRouter);
+apiRouter.use('/admin', adminRouter);
 apiRouter.use('/company', companyRouter);
 apiRouter.use('/users', userRouter);
 apiRouter.use('/dashboard', dashboardRouter);
@@ -62,4 +68,9 @@ apiRouter.use('/shipments', shipmentRouter);
 apiRouter.use('/trips', tripRouter);
 apiRouter.use('/reports', reportRouter);
 apiRouter.use('/ai', aiRouter);
+apiRouter.use('/invoices', invoiceRouter);
+apiRouter.use('/notifications', notificationRouter);
+apiRouter.use('/support', supportRouter);
+apiRouter.use('/announcements', tenantAnnouncementRouter);
+
 
