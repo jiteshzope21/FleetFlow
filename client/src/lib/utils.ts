@@ -26,3 +26,12 @@ export function formatDate(dateStr?: string | Date): string {
     year: 'numeric',
   });
 }
+
+export function formatCurrency(amount: number = 0, currency: string = 'INR'): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: currency || 'INR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+

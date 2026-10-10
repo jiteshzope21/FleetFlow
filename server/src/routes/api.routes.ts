@@ -4,6 +4,12 @@ import { authRouter } from '../modules/auth/auth.routes.js';
 import { companyRouter } from '../modules/company/company.routes.js';
 import { userRouter } from '../modules/users/user.routes.js';
 import { dashboardRouter } from '../modules/dashboard/dashboard.routes.js';
+import { vehicleRouter } from '../modules/vehicles/vehicle.routes.js';
+import { driverRouter } from '../modules/drivers/driver.routes.js';
+import { customerRouter } from '../modules/customers/customer.routes.js';
+import { maintenanceRouter } from '../modules/maintenance/maintenance.routes.js';
+import { fuelRouter } from '../modules/fuel/fuel.routes.js';
+import { expenseRouter } from '../modules/expenses/expense.routes.js';
 
 export const apiRouter = Router();
 
@@ -15,7 +21,7 @@ apiRouter.get('/health', (_req, res) => {
   const data = {
     status: isHealthy ? 'healthy' : 'degraded',
     service: 'FleetFlow SaaS API',
-    version: '1.0.0 (Phase 1)',
+    version: '2.0.0 (Phase 2)',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     database: {
@@ -42,3 +48,10 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use('/company', companyRouter);
 apiRouter.use('/users', userRouter);
 apiRouter.use('/dashboard', dashboardRouter);
+apiRouter.use('/vehicles', vehicleRouter);
+apiRouter.use('/drivers', driverRouter);
+apiRouter.use('/customers', customerRouter);
+apiRouter.use('/maintenance', maintenanceRouter);
+apiRouter.use('/fuel', fuelRouter);
+apiRouter.use('/expenses', expenseRouter);
+

@@ -29,21 +29,28 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { company, user } = useAuth();
 
-  const activeNavItems = [
+  const overviewNav = [
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+  ];
+
+  const fleetNavItems = [
+    { label: 'Vehicles & Fleet', href: '/vehicles', icon: Truck },
+    { label: 'Driver Profiles', href: '/drivers', icon: UserCheck },
+    { label: 'Customers', href: '/customers', icon: Building2 },
+    { label: 'Maintenance', href: '/maintenance', icon: Wrench },
+    { label: 'Fuel Logs', href: '/fuel', icon: Fuel },
+    { label: 'Expenses', href: '/expenses', icon: Receipt },
+  ];
+
+  const administrationNavItems = [
     { label: 'Team & Users', href: '/users', icon: Users },
     { label: 'Company Profile', href: '/company/profile', icon: Building2 },
     { label: 'My Account', href: '/settings/account', icon: User },
   ];
 
   const upcomingModules = [
-    { label: 'Vehicles & Fleet', icon: Truck, phase: 'Phase 2' },
-    { label: 'Maintenance', icon: Wrench, phase: 'Phase 2' },
-    { label: 'Driver Profiles', icon: UserCheck, phase: 'Phase 2' },
     { label: 'Shipment Bookings', icon: Package, phase: 'Phase 3' },
     { label: 'Trips & GPS Tracking', icon: Navigation, phase: 'Phase 3' },
-    { label: 'Fuel Management', icon: Fuel, phase: 'Phase 3' },
-    { label: 'Invoices & Finance', icon: Receipt, phase: 'Phase 3' },
     { label: 'AI Cost Predictor', icon: Sparkles, phase: 'Phase 3' },
     { label: 'Super Admin Portal', icon: ShieldAlert, phase: 'Phase 4' },
   ];
@@ -85,14 +92,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigation items */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-          {/* Active Navigation */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+          {/* Overview */}
           <div>
-            <div className="px-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Workspace (Phase 1)
-            </div>
             <nav className="space-y-1">
-              {activeNavItems.map((item) => {
+              {overviewNav.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
@@ -103,7 +107,72 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all group',
+                        'flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
+                        isActive
+                          ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-400/10 dark:text-brand-400 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                      )
+                    }
+                  >
+                    <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Fleet & Operations (Phase 2) */}
+          <div>
+            <div className="px-3 mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <span>Fleet Operations</span>
+              <Badge variant="primary" size="sm" className="text-[9px] py-0 px-1">Phase 2</Badge>
+            </div>
+            <nav className="space-y-0.5">
+              {fleetNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) onClose();
+                    }}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
+                        isActive
+                          ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-400/10 dark:text-brand-400 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                      )
+                    }
+                  >
+                    <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Administration */}
+          <div>
+            <div className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Workspace & Team
+            </div>
+            <nav className="space-y-0.5">
+              {administrationNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) onClose();
+                    }}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
                         isActive
                           ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-400/10 dark:text-brand-400 shadow-sm'
                           : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
@@ -120,24 +189,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           {/* Coming Soon Modules */}
           <div>
-            <div className="px-3 mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <div className="px-3 mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               <span>Roadmap Modules</span>
-              <Layers className="w-3.5 h-3.5" />
+              <Layers className="w-3 h-3" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {upcomingModules.map((item, idx) => {
                 const Icon = item.icon;
                 return (
                   <div
                     key={idx}
-                    className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-not-allowed select-none opacity-80"
+                    className="flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-not-allowed select-none opacity-80"
                     title={`Scheduled for implementation in ${item.phase}`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className="w-4 h-4 shrink-0 opacity-60" />
                       <span>{item.label}</span>
                     </div>
-                    <Badge variant="secondary" size="sm" className="text-[10px] py-0 px-1.5 opacity-70">
+                    <Badge variant="secondary" size="sm" className="text-[9px] py-0 px-1 opacity-70">
                       {item.phase}
                     </Badge>
                   </div>

@@ -12,8 +12,9 @@
     "test:env": "tsx src/tests/env_loading.test.ts",
     "test:dns": "tsx src/tests/dns_workaround.test.ts",
     "test:lifecycle": "tsx src/tests/lifecycle.test.ts",
-    "test:acceptance": "tsx src/tests/acceptance.test.ts",
-    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/dns_workaround.test.ts && tsx src/tests/lifecycle.test.ts && tsx src/tests/acceptance.test.ts"
+    "test:phase1": "tsx src/tests/acceptance.test.ts",
+    "test:phase2": "tsx src/tests/phase2.test.ts",
+    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/dns_workaround.test.ts && tsx src/tests/lifecycle.test.ts && tsx src/tests/acceptance.test.ts && tsx src/tests/phase2.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

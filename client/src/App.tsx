@@ -16,6 +16,14 @@ import { CompanyProfilePage } from './features/company/CompanyProfilePage.js';
 import { UserListPage } from './features/users/UserListPage.js';
 import { UserProfilePage } from './features/settings/UserProfilePage.js';
 
+// Phase 2 Operational Feature Pages
+import { VehicleListPage } from './features/vehicles/VehicleListPage.js';
+import { DriverListPage } from './features/drivers/DriverListPage.js';
+import { CustomerListPage } from './features/customers/CustomerListPage.js';
+import { MaintenanceListPage } from './features/maintenance/MaintenanceListPage.js';
+import { FuelListPage } from './features/fuel/FuelListPage.js';
+import { ExpenseListPage } from './features/expenses/ExpenseListPage.js';
+
 // Status Pages
 import { UnauthorizedPage } from './pages/UnauthorizedPage.js';
 import { NotFoundPage } from './pages/NotFoundPage.js';
@@ -38,6 +46,12 @@ export function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<DashboardPage />} />
+                <Route path="/vehicles" element={<VehicleListPage />} />
+                <Route path="/drivers" element={<DriverListPage />} />
+                <Route path="/customers" element={<CustomerListPage />} />
+                <Route path="/maintenance" element={<MaintenanceListPage />} />
+                <Route path="/fuel" element={<FuelListPage />} />
+                <Route path="/expenses" element={<ExpenseListPage />} />
                 <Route path="/users" element={<UserListPage />} />
                 <Route path="/company/profile" element={<CompanyProfilePage />} />
                 <Route path="/settings/account" element={<UserProfilePage />} />
