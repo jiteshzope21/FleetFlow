@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { ENV } from './env.js';
 import { logger } from '../utils/logger.js';
+import { configureDns } from './dns.js';
 
 let inMemoryServer: any = null;
 let activeStorageType: 'mongodb_atlas_persistent' | 'in_memory_ephemeral' | 'disconnected' = 'disconnected';
@@ -11,6 +12,9 @@ function sanitizeMongoUri(raw: string): string {
 }
 
 export async function connectDB(customUri?: string): Promise<string> {
+  // Ensure custom DNS servers are applied before MongoDB driver attempts SRV resolution
+  configureDns();
+
   const uri = customUri || ENV.MONGODB_URI;
 
   // 1. If an external/Atlas URI is explicitly configured, connect to it strictly

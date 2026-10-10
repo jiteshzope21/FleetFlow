@@ -1,3 +1,4 @@
+import '../config/dns.js';
 import bcrypt from 'bcryptjs';
 import { connectDB, disconnectDB } from '../config/db.js';
 import { User } from '../models/User.js';
