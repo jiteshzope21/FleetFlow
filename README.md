@@ -48,22 +48,59 @@ cp .env.example .env
 ```
 Update `MONGODB_URI` with your MongoDB Atlas connection string. (If left unset during local development or testing, an automated in-memory MongoDB instance will be used).
 
-### 4. Running the Application
-Run both backend API and frontend client concurrently:
+### 4. One-Command Development Startup
+Start both the Express backend and the Vite frontend simultaneously with a single command from the project root:
 ```bash
 npm run dev
 ```
-- **Frontend Client:** [http://localhost:5173](http://localhost:5173)
-- **Backend API:** [http://localhost:5000](http://localhost:5000)
-- **Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
-### 5. Running Automated Acceptance Tests
-Run the 40-check automated integration and tenant isolation test suite:
+This single command uses managed process orchestration to start:
+- **Express Backend:** [http://localhost:5000](http://localhost:5000) (pre-flight port check, MongoDB Atlas connection, graceful shutdown)
+- **Vite Frontend:** [http://localhost:5173](http://localhost:5173) (hot reloading, dynamic backend API proxy)
+- **API Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
+
+> **Important:** `npm run dev` starts **both** frontend and backend. You do **not** need to open a second terminal or run `npm run server:dev` separately.
+
+### 5. Stopping Development Services
+Press `Ctrl+C` in your terminal.
+The process orchestrator terminates both the frontend and backend cleanly, closes HTTP listeners, and disconnects Mongoose from MongoDB Atlas without leaving orphaned background processes.
+
+### 6. Diagnosing Port 5000 Conflicts
+If another application or an old orphaned Node process is occupying port 5000, FleetFlow will halt before opening database connections and print a clear diagnostic.
+
+To diagnose or verify port status at any time, run:
 ```bash
-npm run server:test
+npm run port:check
 ```
 
-### 6. Production Build
+- If port 5000 is occupied by an old Node process from a previous session, stop it safely in PowerShell:
+  ```powershell
+  # Check owning process
+  Get-NetTCPConnection -LocalPort 5000 -State Listen | Select-Object OwningProcess
+
+  # Stop only the orphaned FleetFlow process:
+  Stop-Process -Id <PID>
+  ```
+- If port 5000 is occupied by an unrelated third-party application, simply configure a different port in `.env`:
+  ```env
+  PORT=5001
+  ```
+  The Vite frontend proxy automatically detects and synchronizes with your configured `PORT`.
+
+### 7. Running Tests & Quality Verification
+Run the complete 72-check automated test suite (env discovery, DNS workaround, lifecycle & port conflict handling, and Phase 1 multi-tenant acceptance):
+```bash
+npm test
+```
+
+Or run individual suites:
+- `npm run server:test` — Runs all backend tests
+- `npm run test:lifecycle --workspace=server` — Port detection & lifecycle tests
+- `npm run test:dns --workspace=server` — DNS resolver tests
+- `npm run test:env --workspace=server` — Root .env discovery tests
+- `npm run test:acceptance --workspace=server` — 48 multi-tenant acceptance tests
+
+### 8. Production Build
 Compile both frontend and backend for production:
 ```bash
 npm run build

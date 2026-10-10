@@ -8,11 +8,13 @@
     "client"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"blue.bold,cyan.bold\" \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
     "build": "npm run build --workspace=server && npm run build --workspace=client",
+    "test": "npm run test --workspace=server",
     "server:dev": "npm run dev --workspace=server",
     "client:dev": "npm run dev --workspace=client",
     "server:test": "npm run test --workspace=server",
+    "port:check": "node scripts/checkPort.cjs",
     "seed:admin": "npm run seed:admin --workspace=server"
   },
   "devDependencies": {
