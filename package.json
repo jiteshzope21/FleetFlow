@@ -1,0 +1,21 @@
+{
+  "name": "fleetflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FleetFlow - AI-Powered Transport & Fleet Management System (Multi-tenant SaaS)",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "build": "npm run build --workspace=server && npm run build --workspace=client",
+    "server:dev": "npm run dev --workspace=server",
+    "client:dev": "npm run dev --workspace=client",
+    "server:test": "npm run test --workspace=server",
+    "seed:admin": "npm run seed:admin --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
