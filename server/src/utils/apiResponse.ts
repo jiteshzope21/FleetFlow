@@ -38,3 +38,13 @@ export function errorResponse(
   };
   return res.status(statusCode).json(response);
 }
+
+export class AppError extends Error {
+  statusCode: number;
+  constructor(message: string, statusCode = 400) {
+    super(message);
+    this.statusCode = statusCode;
+    Object.setPrototypeOf(this, AppError.prototype);
+  }
+}
+

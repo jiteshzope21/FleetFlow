@@ -8,4 +8,9 @@ export * from './customer.service.js';
 export * from './maintenance.service.js';
 export * from './fuel.service.js';
 export * from './expense.service.js';
+export * from './shipment.service.js';
+export * from './trip.service.js';
+export * from './report.service.js';
+export * from './ai.service.js';
+
 

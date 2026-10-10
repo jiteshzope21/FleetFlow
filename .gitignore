@@ -35,3 +35,12 @@ Thumbs.db
 scratch/
 tmp/
 *.log
+
+# Python & AI
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+env/

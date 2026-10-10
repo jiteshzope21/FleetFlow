@@ -285,3 +285,275 @@ export interface IExpense {
   updatedAt: string;
 }
 
+// ----------------- Phase 3: Shipments & Transport Operations ----------------- //
+
+export type CargoCategory =
+  | 'GENERAL'
+  | 'FRAGILE'
+  | 'PERISHABLE'
+  | 'HAZARDOUS'
+  | 'LIQUID'
+  | 'HEAVY_MACHINERY'
+  | 'PARCEL'
+  | 'OTHER';
+
+export type ShipmentPriority = 'STANDARD' | 'HIGH' | 'URGENT';
+
+export type ShipmentStatus =
+  | 'PENDING'
+  | 'ASSIGNED'
+  | 'PICKED_UP'
+  | 'IN_TRANSIT'
+  | 'DELIVERED'
+  | 'CANCELLED';
+
+export interface IShipmentLocation {
+  address: string;
+  city: string;
+  state?: string;
+  pincode?: string;
+  contactName?: string;
+  contactPhone?: string;
+}
+
+export interface IDeliveryConfirmation {
+  deliveredAt: string;
+  recipientName: string;
+  recipientPhone?: string;
+  notes?: string;
+  podNumber?: string;
+}
+
+export interface IShipment {
+  _id: string;
+  companyId: string;
+  shipmentNumber: string;
+  customerId: {
+    _id: string;
+    name: string;
+    contactPerson?: string;
+    phone?: string;
+    email?: string;
+  } | null;
+  origin: IShipmentLocation;
+  destination: IShipmentLocation;
+  cargoDescription: string;
+  cargoCategory: CargoCategory;
+  weightKg: number;
+  volumeCbm?: number;
+  priority: ShipmentPriority;
+  status: ShipmentStatus;
+  estimatedCost: number;
+  agreedPrice: number;
+  assignedVehicleId?: {
+    _id: string;
+    registrationNumber: string;
+    make: string;
+    model: string;
+    type: string;
+  } | null;
+  assignedDriverId?: {
+    _id: string;
+    name: string;
+    phone: string;
+    licenseNumber: string;
+  } | null;
+  tripId?: {
+    _id: string;
+    tripNumber: string;
+    status: string;
+    originCity: string;
+    destinationCity: string;
+  } | null;
+  pickupDate?: string;
+  deliveryDate?: string;
+  deliveryConfirmation?: IDeliveryConfirmation | null;
+  specialInstructions?: string;
+  notes?: string;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------- Phase 3: Trips & Dispatch ----------------- //
+
+export type TripStatus =
+  | 'DRAFT'
+  | 'PLANNED'
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export type StopType = 'PICKUP' | 'DELIVERY' | 'WAYPOINT' | 'REST';
+
+export interface ITripStop {
+  stopNumber: number;
+  locationName: string;
+  address?: string;
+  city: string;
+  type: StopType;
+  plannedTime?: string;
+  actualTime?: string;
+  notes?: string;
+}
+
+export interface ITripCostBreakdown {
+  fuelCost?: number;
+  tollCost?: number;
+  driverAllowance?: number;
+  maintenanceCost?: number;
+  otherCost?: number;
+}
+
+export interface ITrip {
+  _id: string;
+  companyId: string;
+  tripNumber: string;
+  vehicleId: {
+    _id: string;
+    registrationNumber: string;
+    make: string;
+    model: string;
+    type: string;
+    fuelType?: string;
+    currentOdometer: number;
+    status: string;
+  } | null;
+  driverId: {
+    _id: string;
+    name: string;
+    phone: string;
+    licenseNumber: string;
+    status: string;
+  } | null;
+  shipmentIds: Array<{
+    _id: string;
+    shipmentNumber: string;
+    cargoDescription: string;
+    weightKg: number;
+    agreedPrice: number;
+    status: string;
+  }>;
+  originCity: string;
+  destinationCity: string;
+  stops?: ITripStop[];
+  status: TripStatus;
+  plannedDepartureDate: string;
+  plannedArrivalDate: string;
+  actualDepartureDate?: string;
+  actualArrivalDate?: string;
+  startOdometer?: number;
+  endOdometer?: number;
+  estimatedDistanceKm: number;
+  actualDistanceKm?: number;
+  estimatedCost: number;
+  actualCost?: number;
+  costBreakdown?: ITripCostBreakdown;
+  notes?: string;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------- Phase 3: Reports ----------------- //
+
+export interface IOperationalSummary {
+  shipments: {
+    total: number;
+    delivered: number;
+    inTransit: number;
+    pending: number;
+  };
+  trips: {
+    total: number;
+    completed: number;
+    inProgress: number;
+    totalDistanceKm: number;
+  };
+  financials: {
+    totalRevenue: number;
+    estimatedCost: number;
+    actualCost: number;
+    grossMargin: number;
+    marginPercent: number;
+  };
+  fleet: {
+    totalVehicles: number;
+    activeVehicles: number;
+    utilizationPercent: number;
+  };
+}
+
+// ----------------- Phase 4: AI Intelligence ----------------- //
+
+export interface ITripCostPrediction {
+  success: boolean;
+  predicted_cost: number;
+  currency: string;
+  cost_breakdown: {
+    fuel_cost: number;
+    toll_charges: number;
+    driver_allowance: number;
+    maintenance_reserves: number;
+  };
+  cost_per_km: number;
+  confidence_interval: {
+    lower_bound: number;
+    upper_bound: number;
+  };
+  model_version: string;
+  evaluation_metrics: {
+    mae: number;
+    rmse: number;
+    r2_score: number;
+  };
+  explainability: string[];
+}
+
+export interface IAIFleetInsights {
+  operational: {
+    fleet_utilization_percent: number;
+    shipment_completion_percent: number;
+    bottlenecks: string[];
+    operating_health_index: string;
+  };
+  fuel: {
+    analyzed_vehicles: number;
+    fleet_total_odometer_km: number;
+    estimated_average_efficiency_kmpl: number;
+    anomalies: Array<{
+      vehicle_id: string;
+      registration_number: string;
+      type: string;
+      severity: string;
+      message: string;
+    }>;
+    savings_potential_inr: number;
+    summary: string;
+  };
+  maintenance: {
+    monitored_vehicles: number;
+    overdue_count: number;
+    due_soon_count: number;
+    alerts: Array<{
+      vehicle_id: string;
+      registration_number: string;
+      status: string;
+      km_since_last_service: number;
+      recommended_action: string;
+    }>;
+  };
+}
+
+export interface IAIRecommendation {
+  id: string;
+  title: string;
+  severity: 'INFO' | 'WARNING' | 'DANGER' | 'SUCCESS';
+  category: string;
+  explanation: string;
+  suggested_action: string;
+  action_url?: string;
+}
+
+

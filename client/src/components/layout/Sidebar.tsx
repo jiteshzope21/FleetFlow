@@ -33,6 +33,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
   ];
 
+  const operationsNavItems = [
+    { label: 'Shipments & Orders', href: '/shipments', icon: Package },
+    { label: 'Trips & Dispatch', href: '/trips', icon: Navigation },
+  ];
+
   const fleetNavItems = [
     { label: 'Vehicles & Fleet', href: '/vehicles', icon: Truck },
     { label: 'Driver Profiles', href: '/drivers', icon: UserCheck },
@@ -42,17 +47,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { label: 'Expenses', href: '/expenses', icon: Receipt },
   ];
 
+  const aiAnalyticsNavItems = [
+    { label: 'AI Fleet Intelligence', href: '/ai-insights', icon: Sparkles },
+    { label: 'Reports & Analytics', href: '/reports', icon: Layers },
+  ];
+
   const administrationNavItems = [
     { label: 'Team & Users', href: '/users', icon: Users },
     { label: 'Company Profile', href: '/company/profile', icon: Building2 },
     { label: 'My Account', href: '/settings/account', icon: User },
-  ];
-
-  const upcomingModules = [
-    { label: 'Shipment Bookings', icon: Package, phase: 'Phase 3' },
-    { label: 'Trips & GPS Tracking', icon: Navigation, phase: 'Phase 3' },
-    { label: 'AI Cost Predictor', icon: Sparkles, phase: 'Phase 3' },
-    { label: 'Super Admin Portal', icon: ShieldAlert, phase: 'Phase 4' },
   ];
 
   return (
@@ -122,14 +125,80 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </nav>
           </div>
 
-          {/* Fleet & Operations (Phase 2) */}
+          {/* Transport Operations (Phase 3) */}
           <div>
             <div className="px-3 mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              <span>Fleet Operations</span>
+              <span>Transport Operations</span>
+              <Badge variant="primary" size="sm" className="text-[9px] py-0 px-1">Phase 3</Badge>
+            </div>
+            <nav className="space-y-0.5">
+              {operationsNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) onClose();
+                    }}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
+                        isActive
+                          ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-400/10 dark:text-brand-400 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                      )
+                    }
+                  >
+                    <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Fleet Management (Phase 2) */}
+          <div>
+            <div className="px-3 mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <span>Fleet Management</span>
               <Badge variant="primary" size="sm" className="text-[9px] py-0 px-1">Phase 2</Badge>
             </div>
             <nav className="space-y-0.5">
               {fleetNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) onClose();
+                    }}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
+                        isActive
+                          ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-400/10 dark:text-brand-400 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                      )
+                    }
+                  >
+                    <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* AI Intelligence & Analytics (Phase 4) */}
+          <div>
+            <div className="px-3 mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <span>AI Intelligence</span>
+              <Badge variant="success" size="sm" className="text-[9px] py-0 px-1">Phase 4</Badge>
+            </div>
+            <nav className="space-y-0.5">
+              {aiAnalyticsNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink
@@ -185,34 +254,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 );
               })}
             </nav>
-          </div>
-
-          {/* Coming Soon Modules */}
-          <div>
-            <div className="px-3 mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              <span>Roadmap Modules</span>
-              <Layers className="w-3 h-3" />
-            </div>
-            <div className="space-y-0.5">
-              {upcomingModules.map((item, idx) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-not-allowed select-none opacity-80"
-                    title={`Scheduled for implementation in ${item.phase}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-4 h-4 shrink-0 opacity-60" />
-                      <span>{item.label}</span>
-                    </div>
-                    <Badge variant="secondary" size="sm" className="text-[9px] py-0 px-1 opacity-70">
-                      {item.phase}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
 

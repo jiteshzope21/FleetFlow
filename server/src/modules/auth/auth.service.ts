@@ -23,8 +23,11 @@ export class AuthService {
     accessToken: string;
     refreshToken: string;
   }> {
+    const ownerEmail = input.ownerEmail.toLowerCase().trim();
+    const companyEmail = input.companyEmail.toLowerCase().trim();
+
     // Check if email already exists
-    const existingUser = await User.findOne({ email: input.ownerEmail });
+    const existingUser = await User.findOne({ email: ownerEmail });
     if (existingUser) {
       throw new Error('An account with this owner email address already exists.');
     }
@@ -44,62 +47,73 @@ export class AuthService {
 
     // Create Company
     const company = new Company({
-      name: input.companyName,
+      name: input.companyName.trim(),
       slug,
-      email: input.companyEmail,
-      phone: input.companyPhone,
+      email: companyEmail,
+      phone: input.companyPhone ? input.companyPhone.trim() : undefined,
       address: input.companyAddress,
       businessType: input.businessType,
       status: 'ACTIVE',
     });
     await company.save();
 
-    // Create Owner User
-    const user = new User({
-      name: input.ownerName,
-      email: input.ownerEmail,
-      passwordHash,
-      role: 'COMPANY_OWNER',
-      companyId: company._id,
-      status: 'ACTIVE',
-      lastLoginAt: new Date(),
-    });
-    await user.save();
+    try {
+      // Create Owner User
+      const user = new User({
+        name: input.ownerName.trim(),
+        email: ownerEmail,
+        passwordHash,
+        role: 'COMPANY_OWNER',
+        companyId: company._id,
+        status: 'ACTIVE',
+        lastLoginAt: new Date(),
+      });
+      await user.save();
 
-    // Link ownerId on Company
-    company.ownerId = user._id as any;
-    await company.save();
+      // Link ownerId on Company
+      company.ownerId = user._id as any;
+      await company.save();
 
-    // Generate tokens
-    const tokenPayload = {
-      userId: user._id.toString(),
-      email: user.email,
-      role: user.role,
-      companyId: company._id.toString(),
-    };
-    const accessToken = generateAccessToken(tokenPayload);
-    const refreshToken = generateRefreshToken(tokenPayload);
-
-    return {
-      user: {
-        id: user._id.toString() as any,
-        name: user.name,
+      // Generate tokens
+      const tokenPayload = {
+        userId: user._id.toString(),
         email: user.email,
         role: user.role,
-        companyId: company._id as any,
-        status: user.status,
-      },
-      company: {
-        id: company._id.toString() as any,
-        name: company.name,
-        slug: company.slug,
-        email: company.email,
-        businessType: company.businessType,
-        status: company.status,
-      },
-      accessToken,
-      refreshToken,
-    };
+        companyId: company._id.toString(),
+      };
+      const accessToken = generateAccessToken(tokenPayload);
+      const refreshToken = generateRefreshToken(tokenPayload);
+
+      return {
+        user: {
+          id: user._id.toString() as any,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          companyId: company._id as any,
+          status: user.status,
+        },
+        company: {
+          id: company._id.toString() as any,
+          name: company.name,
+          slug: company.slug,
+          email: company.email,
+          businessType: company.businessType,
+          status: company.status,
+        },
+        accessToken,
+        refreshToken,
+      };
+    } catch (userErr: any) {
+      // Rollback: delete orphaned company document if user creation failed
+      try {
+        await Company.findByIdAndDelete(company._id);
+        logger.info(`Rolled back orphaned company ${company._id} due to user creation error`);
+      } catch (cleanupErr) {
+        logger.error('Failed to cleanup company after registration failure:', cleanupErr);
+      }
+      throw userErr;
+    }
   }
 
   static async login(input: LoginInput): Promise<{
@@ -109,7 +123,8 @@ export class AuthService {
     refreshToken: string;
   }> {
     // Find user by email
-    const user = await User.findOne({ email: input.email }).select('+passwordHash');
+    const normalizedEmail = (input.email || '').toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash');
     if (!user) {
       throw new Error('Invalid email or password.');
     }

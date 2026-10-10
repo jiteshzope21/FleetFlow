@@ -11,12 +11,12 @@ import { Alert } from '../../components/ui/Alert.js';
 
 const registerCompanySchema = z
   .object({
-    companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-    companyEmail: z.string().email('Please enter a valid company email'),
+    companyName: z.string().min(2, 'Company name must be at least 2 characters').trim(),
+    companyEmail: z.string().email('Please enter a valid company email').toLowerCase().trim(),
     companyPhone: z.string().optional(),
     businessType: z.enum(['LOGISTICS', 'FREIGHT_FORWARDER', 'TRUCKING', 'FLEET_OPERATOR', 'OTHER']),
-    ownerName: z.string().min(2, 'Owner full name must be at least 2 characters'),
-    ownerEmail: z.string().email('Please enter a valid personal email'),
+    ownerName: z.string().min(2, 'Owner full name must be at least 2 characters').trim(),
+    ownerEmail: z.string().email('Please enter a valid personal email').toLowerCase().trim(),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -39,6 +39,8 @@ export const RegisterCompanyPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerCompanySchema),
@@ -47,12 +49,23 @@ export const RegisterCompanyPage: React.FC = () => {
     },
   });
 
+  const enteredOwnerEmail = watch('ownerEmail') || '';
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setServerError(null);
       await registerAuth(data);
       navigate('/');
     } catch (err: any) {
+      if (err.response?.data?.errors) {
+        const fieldErrors = err.response.data.errors;
+        Object.keys(fieldErrors).forEach((field) => {
+          setError(field as any, {
+            type: 'server',
+            message: Array.isArray(fieldErrors[field]) ? fieldErrors[field].join(', ') : fieldErrors[field],
+          });
+        });
+      }
       setServerError(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -60,6 +73,8 @@ export const RegisterCompanyPage: React.FC = () => {
       );
     }
   };
+
+  const isDuplicateAccount = serverError?.toLowerCase().includes('already exists');
 
   return (
     <div className="space-y-6">
@@ -74,9 +89,23 @@ export const RegisterCompanyPage: React.FC = () => {
       </div>
 
       {serverError && (
-        <Alert variant="error" title="Registration Error">
-          {serverError}
-        </Alert>
+        <div className="space-y-3">
+          <Alert variant="error" title="Registration Error">
+            {serverError}
+          </Alert>
+          {isDuplicateAccount && (
+            <div className="p-3.5 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <span className="text-brand-900 dark:text-brand-200 font-medium">
+                This account is already registered. Sign in to your existing workspace:
+              </span>
+              <Link to={`/login?email=${encodeURIComponent(enteredOwnerEmail)}`}>
+                <Button size="sm" variant="primary" className="whitespace-nowrap">
+                  Sign In with this Email
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { successResponse, errorResponse } from '../../utils/apiResponse.js';
 import { Company } from '../../models/Company.js';
+import { logger } from '../../utils/logger.js';
 
 export class AuthController {
   static async register(req: Request, res: Response): Promise<void> {
@@ -9,7 +10,16 @@ export class AuthController {
       const result = await AuthService.registerCompany(req.body);
       successResponse(res, result, 'Company and workspace registered successfully.', 201);
     } catch (err: any) {
-      errorResponse(res, err.message, 400);
+      const safeEmail = req.body?.ownerEmail ? req.body.ownerEmail.toLowerCase() : 'unknown';
+      logger.warn(`[AuthController.register] Registration rejected for email ${safeEmail}: ${err.message}`);
+      
+      if (err.code === 11000) {
+        errorResponse(res, 'An account with this email already exists.', 400);
+        return;
+      }
+      
+      const statusCode = err.statusCode || 400;
+      errorResponse(res, err.message || 'Registration failed', statusCode);
     }
   }
 
@@ -18,7 +28,9 @@ export class AuthController {
       const result = await AuthService.login(req.body);
       successResponse(res, result, 'Logged in successfully.', 200);
     } catch (err: any) {
-      errorResponse(res, err.message, 401);
+      const safeEmail = req.body?.email ? req.body.email.toLowerCase() : 'unknown';
+      logger.warn(`[AuthController.login] Login failed for ${safeEmail}: ${err.message}`);
+      errorResponse(res, err.message || 'Authentication failed', err.statusCode || 401);
     }
   }
 

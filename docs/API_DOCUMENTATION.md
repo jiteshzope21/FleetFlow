@@ -417,3 +417,204 @@ Update expense entry.
 Archive expense entry.
 - **Access:** `manage_expenses`
 
+---
+
+## 12. Phase 3 — Shipment & Order Management (`/api/shipments`)
+
+### `GET /api/shipments`
+List customer shipments and orders with pagination, search, status, and customer filters.
+- **Query Params:** `page`, `limit`, `search`, `status`, `customerId`, `priority`
+- **Access:** Authenticated Workspace Member
+
+### `POST /api/shipments`
+Create a new transport order / shipment booking.
+- **Access:** `manage_operations` (Owner, Manager, Dispatcher)
+- **Request Body:**
+```json
+{
+  "customerId": "6acaaa2ca14ec6579b99a647",
+  "originAddress": "Plot 42, MIDC Industrial Area",
+  "originCity": "Mumbai",
+  "destinationAddress": "Warehouse 7, Chakan Industrial Phase 2",
+  "destinationCity": "Pune",
+  "cargoDescription": "Precision CNC Automotive Components",
+  "cargoCategory": "HEAVY_MACHINERY",
+  "weightKg": 3200,
+  "priority": "HIGH",
+  "agreedPrice": 75000,
+  "estimatedCost": 22000,
+  "pickupDate": "2026-10-12",
+  "deliveryDate": "2026-10-13"
+}
+```
+
+### `GET /api/shipments/:id`
+Retrieve detailed shipment order information including assigned vehicle, driver, and trip references.
+- **Access:** Authenticated Workspace Member
+
+### `PATCH /api/shipments/:id`
+Update shipment booking details.
+- **Access:** `manage_operations`
+
+### `POST /api/shipments/:id/confirm-delivery`
+Record electronic Proof of Delivery (POD) and transition shipment status to `DELIVERED`.
+- **Access:** `manage_operations`
+- **Request Body:**
+```json
+{
+  "recipientName": "Ramesh Patil (Store Manager)",
+  "recipientPhone": "+91 98200 11223",
+  "podNumber": "POD-MUM-PUN-9821",
+  "notes": "Delivered with zero packaging defects; verified invoice."
+}
+```
+
+### `DELETE /api/shipments/:id`
+Cancel / archive shipment booking.
+- **Access:** `manage_operations`
+
+---
+
+## 13. Phase 3 — Trips & Dispatch Management (`/api/trips`)
+
+### `GET /api/trips`
+List trips with pagination, search, status, vehicle, and driver filters.
+- **Query Params:** `page`, `limit`, `search`, `status`, `vehicleId`, `driverId`
+- **Access:** Authenticated Workspace Member
+
+### `POST /api/trips`
+Atomic Trip Dispatch: Validates vehicle availability (checks maintenance status and prevents concurrent assignment conflicts), driver availability, links pending shipments, and sets trip status to `ASSIGNED`.
+- **Access:** `manage_operations` (Owner, Manager, Dispatcher)
+- **Request Body:**
+```json
+{
+  "vehicleId": "6acaaa2ca14ec6579b99a63c",
+  "driverId": "6acaaa2ca14ec6579b99a643",
+  "shipmentIds": ["6acaaa2ca14ec6579b99a651"],
+  "originCity": "Mumbai",
+  "destinationCity": "Pune",
+  "plannedDepartureDate": "2026-10-12",
+  "estimatedDistanceKm": 350,
+  "estimatedCost": 4500
+}
+```
+
+### `GET /api/trips/:id`
+Retrieve single trip details with stops, assigned cargo, and cost breakdown.
+- **Access:** Authenticated Workspace Member
+
+### `POST /api/trips/:id/start`
+Start trip: records departure odometer and advances trip status to `IN_PROGRESS` and linked shipments to `IN_TRANSIT`.
+- **Access:** `manage_operations`
+- **Request Body:** `{ "startOdometer": 50000 }`
+
+### `POST /api/trips/:id/complete`
+Complete trip: records arrival odometer (advancing vehicle current odometer), records operational expense breakdown (fuel, tolls, driver allowance), computes total trip cost, and completes linked shipments.
+- **Access:** `manage_operations`
+- **Request Body:**
+```json
+{
+  "endOdometer": 51580,
+  "costBreakdown": {
+    "fuelCost": 24500,
+    "tollCost": 6800,
+    "driverAllowance": 5200,
+    "otherCost": 3500
+  },
+  "actualCost": 40000,
+  "notes": "Safe roundtrip haulage completed."
+}
+```
+
+### `POST /api/trips/:id/cancel`
+Cancel trip and release assigned vehicles, drivers, and reset shipments to `PENDING`.
+- **Access:** `manage_operations`
+
+---
+
+## 14. Phase 3 — Reports & Secure Data Export (`/api/reports`)
+
+### `GET /api/reports/summary`
+Company-scoped operational summary calculating:
+- Total Customer Freight Revenue
+- Actual Operating Costs (fuel + tolls + allowances)
+- Gross Operating Margin & Margin Percentage
+- Completed Trips & Total Shipments counts
+- Fleet Utilization
+- **Access:** Authenticated Workspace Member
+
+### `GET /api/reports/export/shipments`
+Streams company-scoped shipments register as a CSV spreadsheet with formula injection defense (`=`, `+`, `-`, `@` escaped).
+- **Access:** Authenticated Workspace Member
+
+### `GET /api/reports/export/trips`
+Streams company-scoped trips register as a CSV spreadsheet.
+- **Access:** Authenticated Workspace Member
+
+---
+
+## 15. Phase 4 — AI Fleet Intelligence & Machine Learning (`/api/ai`)
+
+### `GET /api/ai/health`
+Checks FastAPI service connectivity and reports ML model training metadata and validation metrics (MAE, RMSE, R²).
+- **Access:** Authenticated Workspace Member
+
+### `POST /api/ai/predict-trip-cost`
+Generates predicted operating cost for planned trips using the scikit-learn Gradient Boosting Regressor model (`ai-service/models/trip_cost_model.joblib`), with automatic fallback to deterministic logistics formula if the microservice is offline.
+- **Access:** Authenticated Workspace Member
+- **Request Body:**
+```json
+{
+  "distanceKm": 350,
+  "cargoWeightKg": 4500,
+  "vehicleType": "HEAVY_TRUCK",
+  "fuelType": "DIESEL",
+  "fuelPricePerLiter": 92.5
+}
+```
+- **Response `200 OK`:**
+```json
+{
+  "success": true,
+  "data": {
+    "predicted_cost": 6125,
+    "currency": "INR",
+    "cost_breakdown": {
+      "fuel_cost": 3675,
+      "toll_charges": 1102.5,
+      "driver_allowance": 918.75,
+      "maintenance_reserves": 428.75
+    },
+    "cost_per_km": 17.5,
+    "confidence_interval": {
+      "lower_bound": 5512.5,
+      "upper_bound": 6737.5
+    },
+    "model_version": "FleetFlow Gradient Boosting v1.0.0",
+    "evaluation_metrics": {
+      "mae": 1143.40,
+      "rmse": 1579.32,
+      "r2_score": 0.9952
+    },
+    "explainability": [
+      "Fuel component accounts for ~60% of predicted operating expenses",
+      "Vehicle category heavy truck load multiplier applied (1.4x)",
+      "High confidence estimation"
+    ]
+  }
+}
+```
+
+### `GET /api/ai/insights`
+Calculates real fleet telemetry, fuel economy averages, potential eco-savings, overdue maintenance risk indicators, and fleet utilization metrics from live tenant database records.
+- **Access:** Authenticated Workspace Member
+
+### `GET /api/ai/recommendations`
+Retrieves actionable operational suggestions based on real vehicle, driver, and trip data (ignoring tenant-dismissed suggestions).
+- **Access:** Authenticated Workspace Member
+
+### `PATCH /api/ai/recommendations/:id/dismiss`
+Acknowledge and dismiss an AI recommendation with tenant-level persistence.
+- **Access:** Authenticated Workspace Member
+
+

@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Alert } from '../../components/ui/Alert.js';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().email('Please enter a valid email address').toLowerCase().trim(),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -23,6 +23,7 @@ export const LoginPage: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const isExpired = searchParams.get('expired') === 'true';
+  const prefilledEmail = searchParams.get('email') || '';
 
   const {
     register,
@@ -30,6 +31,9 @@ export const LoginPage: React.FC = () => {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: prefilledEmail,
+    },
   });
 
   const onSubmit = async (data: LoginFormData) => {

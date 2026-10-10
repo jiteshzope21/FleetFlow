@@ -4,20 +4,22 @@ export const registerCompanySchema = z
   .object({
     companyName: z
       .string()
+      .trim()
       .min(2, 'Company name must be at least 2 characters')
       .max(100, 'Company name cannot exceed 100 characters'),
     companyEmail: z
       .string()
-      .email('Please enter a valid company email address')
-      .toLowerCase(),
-    companyPhone: z.string().optional(),
+      .trim()
+      .toLowerCase()
+      .email('Please enter a valid company email address'),
+    companyPhone: z.string().trim().optional(),
     companyAddress: z
       .object({
-        street: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        zipCode: z.string().optional(),
-        country: z.string().optional(),
+        street: z.string().trim().optional(),
+        city: z.string().trim().optional(),
+        state: z.string().trim().optional(),
+        zipCode: z.string().trim().optional(),
+        country: z.string().trim().optional(),
       })
       .optional(),
     businessType: z
@@ -25,12 +27,14 @@ export const registerCompanySchema = z
       .default('LOGISTICS'),
     ownerName: z
       .string()
+      .trim()
       .min(2, 'Owner name must be at least 2 characters')
       .max(100, 'Owner name cannot exceed 100 characters'),
     ownerEmail: z
       .string()
-      .email('Please enter a valid personal/owner email address')
-      .toLowerCase(),
+      .trim()
+      .toLowerCase()
+      .email('Please enter a valid personal/owner email address'),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -44,12 +48,12 @@ export const registerCompanySchema = z
   });
 
 export const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address').toLowerCase(),
+  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address').toLowerCase(),
+  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
 });
 
 export const resetPasswordSchema = z

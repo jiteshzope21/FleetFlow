@@ -29,6 +29,25 @@ export async function connectDB(customUri?: string): Promise<string> {
       logger.info('Connected to persistent MongoDB (Atlas/External) successfully.');
       return uri;
     } catch (err: any) {
+      // Auto-fallback: If Node failed SRV resolution due to local ISP/router DNS ECONNREFUSED,
+      // apply reliable public DNS resolvers (Google 8.8.8.8 & Cloudflare 1.1.1.1) and retry once.
+      if (err.message && (err.message.includes('querySrv') || err.message.includes('ECONNREFUSED'))) {
+        logger.warn(
+          'Local router/ISP DNS failed MongoDB SRV lookup (querySrv ECONNREFUSED). Automatically applying fallback DNS resolvers [8.8.8.8, 1.1.1.1] and retrying connection...'
+        );
+        configureDns(['8.8.8.8', '1.1.1.1']);
+        try {
+          await mongoose.connect(uri, {
+            serverSelectionTimeoutMS: 5000,
+          });
+          activeStorageType = 'mongodb_atlas_persistent';
+          logger.info('Connected to persistent MongoDB (Atlas/External) successfully after applying DNS workaround.');
+          return uri;
+        } catch (retryErr: any) {
+          err = retryErr;
+        }
+      }
+
       activeStorageType = 'disconnected';
       const safeErrorMsg = sanitizeMongoUri(err.message || 'Unknown database connection error');
       logger.error(`Failed to connect to configured MONGODB_URI: ${safeErrorMsg}`);

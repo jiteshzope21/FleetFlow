@@ -10,6 +10,10 @@ import { customerRouter } from '../modules/customers/customer.routes.js';
 import { maintenanceRouter } from '../modules/maintenance/maintenance.routes.js';
 import { fuelRouter } from '../modules/fuel/fuel.routes.js';
 import { expenseRouter } from '../modules/expenses/expense.routes.js';
+import { shipmentRouter } from '../modules/shipments/shipment.routes.js';
+import { tripRouter } from '../modules/trips/trip.routes.js';
+import { reportRouter } from '../modules/reports/report.routes.js';
+import { aiRouter } from '../modules/ai/ai.routes.js';
 
 export const apiRouter = Router();
 
@@ -21,7 +25,7 @@ apiRouter.get('/health', (_req, res) => {
   const data = {
     status: isHealthy ? 'healthy' : 'degraded',
     service: 'FleetFlow SaaS API',
-    version: '2.0.0 (Phase 2)',
+    version: '4.0.0 (Phase 3 & 4)',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     database: {
@@ -54,4 +58,8 @@ apiRouter.use('/customers', customerRouter);
 apiRouter.use('/maintenance', maintenanceRouter);
 apiRouter.use('/fuel', fuelRouter);
 apiRouter.use('/expenses', expenseRouter);
+apiRouter.use('/shipments', shipmentRouter);
+apiRouter.use('/trips', tripRouter);
+apiRouter.use('/reports', reportRouter);
+apiRouter.use('/ai', aiRouter);
 

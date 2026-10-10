@@ -1,0 +1,25 @@
+{
+  "model_name": "FleetFlow GradientBoosting Cost Predictor",
+  "version": "1.0.0",
+  "feature_columns": [
+    "distance_km",
+    "cargo_weight_kg",
+    "fuel_price",
+    "vehicle_type_CONTAINER",
+    "vehicle_type_TANKER",
+    "vehicle_type_TRAILER",
+    "vehicle_type_TRUCK",
+    "vehicle_type_VAN",
+    "fuel_type_CNG",
+    "fuel_type_DIESEL",
+    "fuel_type_ELECTRIC",
+    "fuel_type_PETROL"
+  ],
+  "metrics": {
+    "mae": 1143.4016974559072,
+    "rmse": 1579.321662641754,
+    "r2_score": 0.9951584642401448
+  },
+  "training_samples": 2400,
+  "test_samples": 600
+}

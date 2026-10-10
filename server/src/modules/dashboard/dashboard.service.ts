@@ -7,6 +7,8 @@ import { Customer } from '../../models/Customer.js';
 import { Maintenance } from '../../models/Maintenance.js';
 import { FuelLog } from '../../models/FuelLog.js';
 import { Expense } from '../../models/Expense.js';
+import { Shipment } from '../../models/Shipment.js';
+import { Trip } from '../../models/Trip.js';
 
 export class DashboardService {
   static async getOverview(companyId: mongoose.Types.ObjectId) {
@@ -32,6 +34,13 @@ export class DashboardService {
       generalExpenseAgg,
       expiringVehiclesCount,
       expiringDriversCount,
+      totalShipments,
+      deliveredShipments,
+      inTransitShipments,
+      pendingShipments,
+      totalTrips,
+      inProgressTrips,
+      completedTrips,
     ] = await Promise.all([
       Company.findById(companyId),
       User.countDocuments({ companyId }),
@@ -81,6 +90,13 @@ export class DashboardService {
         isArchived: false,
         licenseExpiryDate: { $lte: thirtyDaysFromNow },
       }),
+      Shipment.countDocuments({ companyId, isArchived: false }),
+      Shipment.countDocuments({ companyId, isArchived: false, status: 'DELIVERED' }),
+      Shipment.countDocuments({ companyId, isArchived: false, status: 'IN_TRANSIT' }),
+      Shipment.countDocuments({ companyId, isArchived: false, status: 'PENDING' }),
+      Trip.countDocuments({ companyId, isArchived: false }),
+      Trip.countDocuments({ companyId, isArchived: false, status: 'IN_PROGRESS' }),
+      Trip.countDocuments({ companyId, isArchived: false, status: 'COMPLETED' }),
     ]);
 
     const rolesMap: Record<string, number> = {};
@@ -148,25 +164,53 @@ export class DashboardService {
         totalAlerts: expiringVehiclesCount + expiringDriversCount + scheduledMaintenance,
       },
       trips: {
-        totalTrips: 0,
-        ongoingTrips: 0,
-        completedTrips: 0,
-        status: 'Available in Phase 3',
+        totalTrips,
+        ongoingTrips: inProgressTrips,
+        completedTrips,
+        status: 'Operational',
+      },
+      shipments: {
+        totalShipments,
+        deliveredShipments,
+        inTransitShipments,
+        pendingShipments,
       },
     };
   }
 
   static async getActivity(companyId: mongoose.Types.ObjectId) {
     // Collect recent operational events across collections
-    const [recentUsers, recentVehicles, recentMaintenance, recentFuel, recentExpenses] = await Promise.all([
+    const [recentUsers, recentVehicles, recentMaintenance, recentFuel, recentExpenses, recentTrips, recentShipments] = await Promise.all([
       User.find({ companyId }).select('name role createdAt').sort({ createdAt: -1 }).limit(3),
       Vehicle.find({ companyId, isArchived: false }).select('registrationNumber make model createdAt').sort({ createdAt: -1 }).limit(3),
       Maintenance.find({ companyId, isArchived: false }).populate('vehicleId', 'registrationNumber').select('serviceType description status createdAt').sort({ createdAt: -1 }).limit(3),
       FuelLog.find({ companyId, isArchived: false }).populate('vehicleId', 'registrationNumber').select('quantity totalCost createdAt').sort({ createdAt: -1 }).limit(3),
       Expense.find({ companyId, isArchived: false }).select('title amount category createdAt').sort({ createdAt: -1 }).limit(3),
+      Trip.find({ companyId, isArchived: false }).select('tripNumber status originCity destinationCity createdAt').sort({ createdAt: -1 }).limit(3),
+      Shipment.find({ companyId, isArchived: false }).select('shipmentNumber status cargoDescription createdAt').sort({ createdAt: -1 }).limit(3),
     ]);
 
     const activities: Array<{ id: string; type: string; title: string; timestamp: Date; actor: string }> = [];
+
+    recentTrips.forEach((t) => {
+      activities.push({
+        id: `trip-${t._id}`,
+        type: 'TRIP_DISPATCHED',
+        title: `Trip ${t.tripNumber}: ${t.originCity} -> ${t.destinationCity} (${t.status})`,
+        timestamp: t.createdAt,
+        actor: 'Dispatcher',
+      });
+    });
+
+    recentShipments.forEach((s) => {
+      activities.push({
+        id: `shipment-${s._id}`,
+        type: 'SHIPMENT_CREATED',
+        title: `Shipment ${s.shipmentNumber}: ${s.cargoDescription} (${s.status})`,
+        timestamp: s.createdAt,
+        actor: 'Transport Ops',
+      });
+    });
 
     recentUsers.forEach((u) => {
       activities.push({

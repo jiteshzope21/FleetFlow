@@ -15,6 +15,8 @@ import {
   Clock,
   Sparkles,
   TrendingUp,
+  Package,
+  Navigation,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.js';
 import { StatCard } from '../../components/shared/StatCard.js';
@@ -77,34 +79,34 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <Link to="/vehicles">
+            <Link to="/shipments">
               <Button
                 variant="secondary"
                 size="sm"
                 leftIcon={<Plus className="w-4 h-4" />}
                 className="bg-white/10 hover:bg-white/20 text-white border-0"
               >
-                Vehicles
+                New Shipment
               </Button>
             </Link>
-            <Link to="/maintenance">
+            <Link to="/trips">
               <Button
                 variant="secondary"
                 size="sm"
-                leftIcon={<Wrench className="w-4 h-4" />}
+                leftIcon={<Plus className="w-4 h-4" />}
                 className="bg-white/10 hover:bg-white/20 text-white border-0"
               >
-                Maintenance
+                Dispatch Trip
               </Button>
             </Link>
-            <Link to="/fuel">
+            <Link to="/ai-insights">
               <Button
                 variant="primary"
                 size="sm"
-                leftIcon={<Fuel className="w-4 h-4" />}
+                leftIcon={<Sparkles className="w-4 h-4" />}
                 className="bg-brand-500 hover:bg-brand-400"
               >
-                Log Fuel
+                AI Insights
               </Button>
             </Link>
           </div>
@@ -269,6 +271,67 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Row 3: Transport Operations & Shipments (Phase 3) */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Navigation className="w-4 h-4 text-primary-600" />
+            <span>Transport Operations & Freight</span>
+          </h2>
+          <span className="text-xs text-slate-500">Live Logistics Stream</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link to="/trips" className="block transition-transform hover:-translate-y-0.5">
+            <StatCard
+              title="Active Dispatched Trips"
+              value={overview?.trips?.activeTrips ?? 0}
+              subtitle="Trips currently en route"
+              icon={<Navigation className="w-5 h-5 text-primary-600 dark:text-primary-400" />}
+              iconBg="bg-primary-50 dark:bg-primary-950/60"
+              isLoading={loading}
+              badge={<Badge variant="primary" size="sm">Phase 3</Badge>}
+            />
+          </Link>
+
+          <Link to="/shipments" className="block transition-transform hover:-translate-y-0.5">
+            <StatCard
+              title="Shipment Bookings"
+              value={overview?.shipments?.totalShipments ?? 0}
+              subtitle="Total registered orders"
+              icon={<Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+              iconBg="bg-blue-50 dark:bg-blue-950/60"
+              isLoading={loading}
+              badge={<Badge variant="primary" size="sm">Phase 3</Badge>}
+            />
+          </Link>
+
+          <Link to="/shipments" className="block transition-transform hover:-translate-y-0.5">
+            <StatCard
+              title="Pending Shipments"
+              value={overview?.shipments?.pendingShipments ?? 0}
+              subtitle="Awaiting trip dispatch"
+              icon={<Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+              iconBg="bg-amber-50 dark:bg-amber-950/60"
+              isLoading={loading}
+              badge={<Badge variant="warning" size="sm">Phase 3</Badge>}
+            />
+          </Link>
+
+          <Link to="/trips" className="block transition-transform hover:-translate-y-0.5">
+            <StatCard
+              title="Completed Deliveries"
+              value={overview?.trips?.completedTrips ?? 0}
+              subtitle="Safely delivered hauls"
+              icon={<Truck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+              iconBg="bg-emerald-50 dark:bg-emerald-950/60"
+              isLoading={loading}
+              badge={<Badge variant="success" size="sm">Phase 3</Badge>}
+            />
+          </Link>
+        </div>
+      </div>
+
       {/* Grid: Activity Stream and System Architecture Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Recent Activity */}
@@ -379,14 +442,14 @@ export const DashboardPage: React.FC = () => {
                 <Badge variant="success" size="sm">Phase 2 Live</Badge>
               </div>
 
-              <div className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                <span>Shipments & GPS Tracking</span>
-                <Badge variant="secondary" size="sm">Phase 3</Badge>
+              <div className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
+                <span className="font-semibold">Shipments & Dispatch Ops</span>
+                <Badge variant="success" size="sm">Phase 3 Live</Badge>
               </div>
 
-              <div className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                <span>AI Cost Predictor</span>
-                <Badge variant="secondary" size="sm">Phase 3</Badge>
+              <div className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
+                <span className="font-semibold">AI Cost Predictor & Telemetry</span>
+                <Badge variant="success" size="sm">Phase 4 Live</Badge>
               </div>
             </div>
 

@@ -24,6 +24,12 @@ import { MaintenanceListPage } from './features/maintenance/MaintenanceListPage.
 import { FuelListPage } from './features/fuel/FuelListPage.js';
 import { ExpenseListPage } from './features/expenses/ExpenseListPage.js';
 
+// Phase 3 & 4 Transport Operations & AI Intelligence
+import { ShipmentListPage } from './features/shipments/ShipmentListPage.js';
+import { TripListPage } from './features/trips/TripListPage.js';
+import { AIInsightsPage } from './features/ai/AIInsightsPage.js';
+import { ReportsPage } from './features/reports/ReportsPage.js';
+
 // Status Pages
 import { UnauthorizedPage } from './pages/UnauthorizedPage.js';
 import { NotFoundPage } from './pages/NotFoundPage.js';
@@ -32,7 +38,7 @@ export function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             {/* Public Authentication Routes */}
             <Route element={<AuthLayout />}>
@@ -46,12 +52,20 @@ export function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<Navigate to="/" replace />} />
                 <Route path="/vehicles" element={<VehicleListPage />} />
                 <Route path="/drivers" element={<DriverListPage />} />
                 <Route path="/customers" element={<CustomerListPage />} />
                 <Route path="/maintenance" element={<MaintenanceListPage />} />
                 <Route path="/fuel" element={<FuelListPage />} />
                 <Route path="/expenses" element={<ExpenseListPage />} />
+
+                {/* Phase 3 & 4 Routes */}
+                <Route path="/shipments" element={<ShipmentListPage />} />
+                <Route path="/trips" element={<TripListPage />} />
+                <Route path="/ai-insights" element={<AIInsightsPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+
                 <Route path="/users" element={<UserListPage />} />
                 <Route path="/company/profile" element={<CompanyProfilePage />} />
                 <Route path="/settings/account" element={<UserProfilePage />} />
