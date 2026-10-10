@@ -5,13 +5,18 @@ import { logger } from '../utils/logger.js';
 let inMemoryServer: any = null;
 let activeStorageType: 'mongodb_atlas_persistent' | 'in_memory_ephemeral' | 'disconnected' = 'disconnected';
 
+function sanitizeMongoUri(raw: string): string {
+  if (!raw) return '';
+  return raw.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
+}
+
 export async function connectDB(customUri?: string): Promise<string> {
   const uri = customUri || ENV.MONGODB_URI;
 
   // 1. If an external/Atlas URI is explicitly configured, connect to it strictly
   if (uri && uri !== 'test-memory') {
+    const sanitizedUri = sanitizeMongoUri(uri);
     try {
-      const sanitizedUri = uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
       logger.info(`Connecting to MongoDB at: ${sanitizedUri}`);
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5000,
@@ -21,10 +26,11 @@ export async function connectDB(customUri?: string): Promise<string> {
       return uri;
     } catch (err: any) {
       activeStorageType = 'disconnected';
-      logger.error(`Failed to connect to configured MONGODB_URI: ${err.message}`);
+      const safeErrorMsg = sanitizeMongoUri(err.message || 'Unknown database connection error');
+      logger.error(`Failed to connect to configured MONGODB_URI: ${safeErrorMsg}`);
       // MANDATORY REQUIREMENT: Do NOT silently switch to in-memory database when MONGODB_URI is provided!
       throw new Error(
-        `Failed to connect to configured MongoDB URI (${err.message}). Verify IP access list in MongoDB Atlas, database credentials, and network connectivity.`
+        `Failed to connect to configured MongoDB URI (${safeErrorMsg}). Verify IP access list in MongoDB Atlas, database credentials, and network connectivity.`
       );
     }
   }
@@ -37,7 +43,7 @@ export async function connectDB(customUri?: string): Promise<string> {
     const memUri = inMemoryServer.getUri();
     await mongoose.connect(memUri);
     activeStorageType = 'in_memory_ephemeral';
-    logger.warn(`Connected to ephemeral in-memory MongoDB: ${memUri}. Note: Data will NOT persist across server restarts.`);
+    logger.warn(`Connected to ephemeral in-memory MongoDB: ${sanitizeMongoUri(memUri)}. Note: Data will NOT persist across server restarts.`);
     return memUri;
   } catch (memErr: any) {
     activeStorageType = 'disconnected';

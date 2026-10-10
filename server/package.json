@@ -9,7 +9,9 @@
     "build": "rimraf dist && tsc",
     "start": "node dist/server.js",
     "seed:admin": "tsx src/scripts/seedSuperAdmin.ts",
-    "test": "tsx src/tests/acceptance.test.ts"
+    "test:env": "tsx src/tests/env_loading.test.ts",
+    "test:acceptance": "tsx src/tests/acceptance.test.ts",
+    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/acceptance.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

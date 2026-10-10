@@ -25,7 +25,7 @@ async function runAcceptanceTests() {
   try {
     // 1. Initialize DB
     console.log('📦 Step 1: Connecting to Database...');
-    await connectDB();
+    await connectDB('test-memory');
     await User.deleteMany({});
     await Company.deleteMany({});
     console.log('   Database cleaned and ready for testing.\n');

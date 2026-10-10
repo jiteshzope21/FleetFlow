@@ -1,9 +1,30 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
+// Directory of this config module
+const currentDir = __dirname;
 
-// Load .env from root or server folder
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-dotenv.config();
+// Candidate paths for .env in order of priority:
+// 1. Process current working directory .env
+// 2. Parent directory of CWD (e.g. when run from workspace folder 'server/')
+// 3. Server workspace root (2 levels up from server/src/config or server/dist/config)
+// 4. Project repository root (3 levels up from server/src/config or server/dist/config)
+const candidateEnvPaths = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '../.env'),
+  path.resolve(currentDir, '../../.env'),
+  path.resolve(currentDir, '../../../.env'),
+];
+
+// Load existing .env files without overwriting pre-existing process.env variables
+// (dotenv.config() by default preserves existing process.env variables supplied by the deployment environment)
+const loadedPaths = new Set<string>();
+for (const envPath of candidateEnvPaths) {
+  if (fs.existsSync(envPath) && !loadedPaths.has(envPath)) {
+    dotenv.config({ path: envPath });
+    loadedPaths.add(envPath);
+  }
+}
 
 export const ENV = {
   PORT: parseInt(process.env.PORT || '5000', 10),
