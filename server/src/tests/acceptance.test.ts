@@ -282,6 +282,45 @@ async function runAcceptanceTests() {
     assert(activityRes.body.data.length >= 2, 'Recent activity returns actual database events');
     console.log('');
 
+    // 13. Password Reset Behavior & Transparency Check
+    console.log('🔒 Step 13: Password Reset Transparency & Token Verification...');
+    const forgotRes = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'alice@apexfreight.com' });
+    assert(forgotRes.status === 200, 'POST /api/auth/forgot-password returns 200 OK');
+    assert(forgotRes.body.data.emailDelivered === false, 'Explicitly reports emailDelivered: false (no false delivery claims)');
+    assert(!!forgotRes.body.data.devResetToken, 'Generates devResetToken for verification');
+
+    const resetTokenVal = forgotRes.body.data.devResetToken;
+    const resetRes = await request(app)
+      .post('/api/auth/reset-password')
+      .send({
+        token: resetTokenVal,
+        password: 'NewPassword999!',
+        confirmPassword: 'NewPassword999!',
+      });
+    assert(resetRes.status === 200, 'POST /api/auth/reset-password succeeds with valid token');
+
+    // Login with new password
+    const newLoginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'alice@apexfreight.com', password: 'NewPassword999!' });
+    assert(newLoginRes.status === 200, 'Can log in with new password');
+
+    // Old password fails
+    const oldLoginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'alice@apexfreight.com', password: 'Password123!' });
+    assert(oldLoginRes.status === 401, 'Old password is no longer accepted');
+    console.log('');
+
+    // 14. Accurate Database Storage Reporting
+    console.log('💾 Step 14: Verifying Accurate DB Storage Reporting in /api/health...');
+    const checkStorageRes = await request(app).get('/api/health');
+    assert(checkStorageRes.body.data?.database?.storageType === 'in_memory_ephemeral', 'Health check transparently reports ephemeral in-memory storage');
+    assert(checkStorageRes.body.data?.database?.isPersistent === false, 'Reports isPersistent: false when using ephemeral in-memory database');
+    console.log('');
+
     console.log('========================================================');
     console.log(`🏁 TEST RESULTS: ${passed} PASSED | ${failed} FAILED`);
     console.log('========================================================\n');

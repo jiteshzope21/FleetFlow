@@ -170,12 +170,13 @@ export class AuthService {
     };
   }
 
-  static async forgotPassword(email: string): Promise<{ message: string; devResetToken?: string }> {
+  static async forgotPassword(email: string): Promise<{ message: string; devResetToken?: string; emailDelivered: boolean }> {
     const user = await User.findOne({ email });
     if (!user) {
       // Do not disclose whether email exists
       return {
-        message: 'If an account exists with this email, password reset instructions have been generated.',
+        message: 'Password reset request processed. Email delivery is currently unconfigured in this environment.',
+        emailDelivered: false,
       };
     }
 
@@ -201,8 +202,9 @@ export class AuthService {
     }
 
     return {
-      message: 'If an account exists with this email, password reset instructions have been generated.',
+      message: 'Password reset token generated. Email service is unconfigured; please use the provided reset token.',
       devResetToken: ENV.NODE_ENV !== 'production' ? rawToken : undefined,
+      emailDelivered: false,
     };
   }
 

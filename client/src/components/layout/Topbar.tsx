@@ -12,7 +12,12 @@ interface TopbarProps {
 export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
   const { user, company, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [dbStatus, setDbStatus] = useState<{ connected: boolean; status: string } | null>(null);
+  const [dbStatus, setDbStatus] = useState<{
+    connected: boolean;
+    status: string;
+    storageType?: string;
+    isPersistent?: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const fetchHealth = async () => {
@@ -22,7 +27,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
           setDbStatus(res.data.data.database);
         }
       } catch {
-        setDbStatus({ connected: false, status: 'offline' });
+        setDbStatus({ connected: false, status: 'offline', storageType: 'disconnected', isPersistent: false });
       }
     };
     fetchHealth();
@@ -65,16 +70,34 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Live DB connectivity pill */}
         <div
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60"
-          title={`MongoDB Connection Status: ${dbStatus?.status || 'Checking...'}`}
+          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+            dbStatus?.isPersistent
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+              : dbStatus?.connected
+              ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+          }`}
+          title={
+            dbStatus?.isPersistent
+              ? 'Persistent MongoDB Atlas Cluster Connected'
+              : dbStatus?.connected
+              ? 'Ephemeral In-Memory Database (Data resets upon server restart)'
+              : 'Database Disconnected'
+          }
         >
-          {dbStatus?.connected ? (
+          {dbStatus?.isPersistent ? (
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-          ) : (
+          ) : dbStatus?.connected ? (
             <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+          ) : (
+            <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
           )}
-          <span className="text-slate-600 dark:text-slate-300">
-            {dbStatus?.connected ? 'DB Connected' : 'DB Checking'}
+          <span>
+            {dbStatus?.isPersistent
+              ? 'Atlas Persistent'
+              : dbStatus?.connected
+              ? 'In-Memory (Ephemeral Dev)'
+              : 'DB Offline'}
           </span>
         </div>
 

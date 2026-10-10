@@ -3,38 +3,44 @@ import { ENV } from './env.js';
 import { logger } from '../utils/logger.js';
 
 let inMemoryServer: any = null;
+let activeStorageType: 'mongodb_atlas_persistent' | 'in_memory_ephemeral' | 'disconnected' = 'disconnected';
 
 export async function connectDB(customUri?: string): Promise<string> {
   const uri = customUri || ENV.MONGODB_URI;
 
-  if (uri) {
+  // 1. If an external/Atlas URI is explicitly configured, connect to it strictly
+  if (uri && uri !== 'test-memory') {
     try {
-      logger.info(`Connecting to MongoDB at: ${uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`);
+      const sanitizedUri = uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
+      logger.info(`Connecting to MongoDB at: ${sanitizedUri}`);
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5000,
       });
-      logger.info('Connected to MongoDB successfully.');
+      activeStorageType = 'mongodb_atlas_persistent';
+      logger.info('Connected to persistent MongoDB (Atlas/External) successfully.');
       return uri;
     } catch (err: any) {
-      logger.warn(`Could not connect to configured MongoDB URI (${err.message}).`);
-      if (ENV.NODE_ENV === 'production') {
-        throw new Error(`Production database connection failed: ${err.message}`);
-      }
-      logger.info('Falling back to MongoMemoryServer for development / testing...');
+      activeStorageType = 'disconnected';
+      logger.error(`Failed to connect to configured MONGODB_URI: ${err.message}`);
+      // MANDATORY REQUIREMENT: Do NOT silently switch to in-memory database when MONGODB_URI is provided!
+      throw new Error(
+        `Failed to connect to configured MongoDB URI (${err.message}). Verify IP access list in MongoDB Atlas, database credentials, and network connectivity.`
+      );
     }
-  } else {
-    logger.info('No MONGODB_URI configured. Starting in-memory MongoDB fallback...');
   }
 
-  // Fallback to in-memory MongoDB for seamless development/testing without pre-configured Atlas
+  // 2. If NO URI is configured, accurately log and use ephemeral in-memory storage for testing/development
+  logger.info('No external MONGODB_URI configured. Starting ephemeral in-memory database fallback for development/testing...');
   try {
     const { MongoMemoryServer } = await import('mongodb-memory-server');
     inMemoryServer = await MongoMemoryServer.create();
     const memUri = inMemoryServer.getUri();
     await mongoose.connect(memUri);
-    logger.info(`Connected to in-memory MongoDB instance: ${memUri}`);
+    activeStorageType = 'in_memory_ephemeral';
+    logger.warn(`Connected to ephemeral in-memory MongoDB: ${memUri}. Note: Data will NOT persist across server restarts.`);
     return memUri;
   } catch (memErr: any) {
+    activeStorageType = 'disconnected';
     logger.error('Failed to initialize in-memory MongoDB:', memErr);
     throw memErr;
   }
@@ -46,9 +52,18 @@ export async function disconnectDB(): Promise<void> {
     await inMemoryServer.stop();
     inMemoryServer = null;
   }
+  activeStorageType = 'disconnected';
 }
 
-export function checkDBHealth(): { isConnected: boolean; state: string; host?: string } {
+export interface DBHealthInfo {
+  isConnected: boolean;
+  state: string;
+  storageType: 'mongodb_atlas_persistent' | 'in_memory_ephemeral' | 'disconnected';
+  isPersistent: boolean;
+  host?: string;
+}
+
+export function checkDBHealth(): DBHealthInfo {
   const stateCode = mongoose.connection.readyState;
   const stateNames: Record<number, string> = {
     0: 'disconnected',
@@ -56,9 +71,15 @@ export function checkDBHealth(): { isConnected: boolean; state: string; host?: s
     2: 'connecting',
     3: 'disconnecting',
   };
+
+  const isConnected = stateCode === 1;
+  const storage = isConnected ? activeStorageType : 'disconnected';
+
   return {
-    isConnected: stateCode === 1,
+    isConnected,
     state: stateNames[stateCode] || 'unknown',
+    storageType: storage,
+    isPersistent: storage === 'mongodb_atlas_persistent',
     host: mongoose.connection.host || undefined,
   };
 }

@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { checkDBHealth } from '../config/db.js';
-import { successResponse } from '../utils/apiResponse.js';
 import { authRouter } from '../modules/auth/auth.routes.js';
 import { companyRouter } from '../modules/company/company.routes.js';
 import { userRouter } from '../modules/users/user.routes.js';
@@ -8,7 +7,7 @@ import { dashboardRouter } from '../modules/dashboard/dashboard.routes.js';
 
 export const apiRouter = Router();
 
-// Health check endpoint (Health & Database Connectivity)
+// Health check endpoint (Health & Accurate Database Connectivity Status)
 apiRouter.get('/health', (_req, res) => {
   const dbHealth = checkDBHealth();
   const isHealthy = dbHealth.isConnected;
@@ -22,6 +21,13 @@ apiRouter.get('/health', (_req, res) => {
     database: {
       status: dbHealth.state,
       connected: dbHealth.isConnected,
+      storageType: dbHealth.storageType,
+      isPersistent: dbHealth.isPersistent,
+      note: dbHealth.isPersistent
+        ? 'Connected to persistent MongoDB Atlas / external database.'
+        : dbHealth.isConnected
+        ? 'Running with ephemeral in-memory storage. Data will reset on server restart.'
+        : 'Database is disconnected.',
     },
   };
 
