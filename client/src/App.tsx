@@ -13,6 +13,7 @@ import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage.js';
 import { DashboardPage } from './features/dashboard/DashboardPage.js';
 import { CompanyProfilePage } from './features/company/CompanyProfilePage.js';
+import { CompanySubscriptionPage } from './features/company/CompanySubscriptionPage.js';
 import { UserListPage } from './features/users/UserListPage.js';
 import { UserProfilePage } from './features/settings/UserProfilePage.js';
 
@@ -93,6 +94,9 @@ export function App() {
 
                 <Route path="/users" element={<UserListPage />} />
                 <Route path="/company/profile" element={<CompanyProfilePage />} />
+                <Route path="/company/subscription" element={<CompanySubscriptionPage />} />
+                <Route path="/subscription" element={<Navigate to="/company/subscription" replace />} />
+                <Route path="/subscriptions" element={<Navigate to="/company/subscription" replace />} />
                 <Route path="/settings/account" element={<UserProfilePage />} />
               </Route>
             </Route>

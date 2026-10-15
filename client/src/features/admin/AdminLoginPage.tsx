@@ -83,18 +83,18 @@ export const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 selection:bg-brand-500 selection:text-white">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-rose-600 via-amber-600 to-indigo-600 text-white shadow-xl shadow-rose-950/50">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white shadow-xl shadow-brand-950/50">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             FleetFlow Platform Administration
           </h1>
           <p className="text-xs text-slate-400">
-            Restricted platform administration portal. Authorized personnel only.
+            Restricted root administration console for platform governance.
           </p>
         </div>
 
@@ -124,7 +124,7 @@ export const AdminLoginPage: React.FC = () => {
                     placeholder="admin@fleetflow.io"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-rose-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 transition-colors"
                   />
                 </div>
               </div>
@@ -141,7 +141,7 @@ export const AdminLoginPage: React.FC = () => {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-rose-500 transition-colors"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 transition-colors"
                   />
                   <button
                     type="button"
@@ -156,7 +156,7 @@ export const AdminLoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-lg shadow-rose-950/40"
+                className="w-full mt-2 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-[0.99] disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-brand-500/25"
               >
                 {loading ? 'Authenticating...' : 'Sign In to Platform Console'}
                 <ArrowRight className="w-4 h-4" />

@@ -12,5 +12,6 @@ export * from './shipment.service.js';
 export * from './trip.service.js';
 export * from './report.service.js';
 export * from './ai.service.js';
+export * from './subscription.service.js';
 
 

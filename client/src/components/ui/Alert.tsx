@@ -1,10 +1,11 @@
 import React from 'react';
-import { AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, AlertTriangle, X } from 'lucide-react';
 import { cn } from '../../lib/utils.js';
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'info' | 'success' | 'warning' | 'error';
   title?: string;
+  onClose?: () => void;
 }
 
 export const Alert: React.FC<AlertProps> = ({
@@ -12,6 +13,7 @@ export const Alert: React.FC<AlertProps> = ({
   title,
   children,
   className,
+  onClose,
   ...props
 }) => {
   const icons = {
@@ -34,7 +36,7 @@ export const Alert: React.FC<AlertProps> = ({
   return (
     <div
       role="alert"
-      className={cn('flex gap-3 p-4 rounded-xl border text-sm', variants[variant], className)}
+      className={cn('flex items-start gap-3 p-4 rounded-xl border text-sm', variants[variant], className)}
       {...props}
     >
       {icons[variant]}
@@ -42,6 +44,17 @@ export const Alert: React.FC<AlertProps> = ({
         {title && <h5 className="font-semibold">{title}</h5>}
         <div className="text-xs leading-relaxed opacity-90">{children}</div>
       </div>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Dismiss alert"
+          className="p-1 -mr-1 -mt-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 };
+

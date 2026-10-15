@@ -3,6 +3,20 @@ import mongoose, { Document, Schema } from 'mongoose';
 export type SubscriptionStatus = 'TRIAL' | 'ACTIVE' | 'EXPIRED' | 'SUSPENDED' | 'CANCELLED';
 export type BillingCycle = 'MONTHLY' | 'YEARLY';
 
+export interface ISubscriptionPayment {
+  _id?: string;
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+  billingCycle: BillingCycle;
+  planCode: string;
+  planName: string;
+  paymentMethod: string;
+  transactionReference: string;
+  paidAt: Date;
+  status: 'SUCCEEDED' | 'FAILED' | 'PENDING';
+}
+
 export interface ISubscription extends Document {
   companyId: mongoose.Types.ObjectId;
   planId: mongoose.Types.ObjectId;
@@ -14,9 +28,26 @@ export interface ISubscription extends Document {
   trialEndsAt?: Date;
   autoRenew: boolean;
   notes?: string;
+  payments: ISubscriptionPayment[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+const SubscriptionPaymentSchema = new Schema<ISubscriptionPayment>(
+  {
+    invoiceNumber: { type: String, required: true },
+    amount: { type: Number, required: true, min: 0 },
+    currency: { type: String, default: 'USD', uppercase: true },
+    billingCycle: { type: String, enum: ['MONTHLY', 'YEARLY'], default: 'MONTHLY' },
+    planCode: { type: String, required: true },
+    planName: { type: String, required: true },
+    paymentMethod: { type: String, default: 'CREDIT_CARD' },
+    transactionReference: { type: String, required: true },
+    paidAt: { type: Date, default: Date.now },
+    status: { type: String, enum: ['SUCCEEDED', 'FAILED', 'PENDING'], default: 'SUCCEEDED' },
+  },
+  { _id: true }
+);
 
 const SubscriptionSchema = new Schema<ISubscription>(
   {
@@ -67,6 +98,10 @@ const SubscriptionSchema = new Schema<ISubscription>(
     notes: {
       type: String,
       default: '',
+    },
+    payments: {
+      type: [SubscriptionPaymentSchema],
+      default: [],
     },
   },
   {

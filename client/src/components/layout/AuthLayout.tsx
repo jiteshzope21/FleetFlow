@@ -9,17 +9,17 @@ export const AuthLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       {/* Left Column: Visual branding and system capabilities */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 text-white overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden border-r border-slate-800/80">
         {/* Abstract background grid */}
-        <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#d97736_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none" />
 
         {/* Glow orb */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-sky-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-600/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-white font-black text-xl shadow-lg shadow-brand-500/30">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white font-black text-xl shadow-lg shadow-brand-500/30">
               FF
             </div>
             <div>
@@ -56,7 +56,7 @@ export const AuthLayout: React.FC = () => {
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-brand-300">
-                <Truck className="w-4 h-4 text-sky-400" />
+                <Truck className="w-4 h-4 text-brand-400" />
                 <span>End-to-End Fleet OS</span>
               </div>
               <p className="text-[11px] text-slate-400">Shipments, routes, trips, maintenance & invoices.</p>

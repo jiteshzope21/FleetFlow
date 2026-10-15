@@ -19,6 +19,7 @@ import { invoiceRouter } from '../modules/invoices/invoice.routes.js';
 import { notificationRouter } from '../modules/notifications/notification.routes.js';
 import { supportRouter } from '../modules/support/support.routes.js';
 import { tenantAnnouncementRouter } from '../modules/announcements/announcement.routes.js';
+import { subscriptionRouter } from '../modules/subscriptions/subscription.routes.js';
 
 export const apiRouter = Router();
 
@@ -72,5 +73,6 @@ apiRouter.use('/invoices', invoiceRouter);
 apiRouter.use('/notifications', notificationRouter);
 apiRouter.use('/support', supportRouter);
 apiRouter.use('/announcements', tenantAnnouncementRouter);
+apiRouter.use('/subscriptions', subscriptionRouter);
 
 

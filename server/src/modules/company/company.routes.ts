@@ -5,6 +5,7 @@ import { requireTenantContext } from '../../middleware/tenant.middleware.js';
 import { requireRole } from '../../middleware/role.middleware.js';
 import { validateRequest } from '../../middleware/validate.middleware.js';
 import { updateCompanyProfileSchema } from './company.validator.js';
+import { subscriptionRouter } from '../subscriptions/subscription.routes.js';
 
 export const companyRouter = Router();
 
@@ -21,3 +22,7 @@ companyRouter.patch(
   validateRequest({ body: updateCompanyProfileSchema }),
   CompanyController.updateProfile
 );
+
+// Mount subscription routes under /company/subscription as well
+companyRouter.use('/subscription', subscriptionRouter);
+

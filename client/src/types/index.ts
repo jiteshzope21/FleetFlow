@@ -556,4 +556,75 @@ export interface IAIRecommendation {
   action_url?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Subscription & Billing Models
+// ---------------------------------------------------------------------------
+export type SubscriptionStatus = 'TRIAL' | 'ACTIVE' | 'EXPIRED' | 'SUSPENDED' | 'CANCELLED';
+export type BillingCycle = 'MONTHLY' | 'YEARLY';
+
+export interface ISubscriptionPayment {
+  _id?: string;
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+  billingCycle: BillingCycle;
+  planCode: string;
+  planName: string;
+  paymentMethod: string;
+  transactionReference: string;
+  paidAt: string;
+  status: 'SUCCEEDED' | 'FAILED' | 'PENDING';
+}
+
+export interface ISubscriptionPlan {
+  _id: string;
+  code: string;
+  name: string;
+  description: string;
+  priceMonthly: number;
+  priceYearly: number;
+  currency: string;
+  maxVehicles: number;
+  maxUsers: number;
+  maxShipmentsPerMonth: number;
+  features: string[];
+  isPopular: boolean;
+  isActive: boolean;
+}
+
+export interface ICompanySubscription {
+  _id: string;
+  companyId: string;
+  planId: ISubscriptionPlan;
+  planCode: string;
+  status: SubscriptionStatus;
+  billingCycle: BillingCycle;
+  startDate: string;
+  endDate: string;
+  trialEndsAt?: string;
+  autoRenew: boolean;
+  notes?: string;
+  payments: ISubscriptionPayment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ISubscriptionDetailsResponse {
+  subscription: ICompanySubscription;
+  plan: ISubscriptionPlan | null;
+  usage: {
+    vehiclesCount: number;
+    usersCount: number;
+    shipmentsCountThisMonth: number;
+  };
+  limits: {
+    maxVehicles: number;
+    maxUsers: number;
+    maxShipmentsPerMonth: number;
+  };
+  daysRemaining: number;
+  isExpired: boolean;
+  isTrial: boolean;
+}
+
 

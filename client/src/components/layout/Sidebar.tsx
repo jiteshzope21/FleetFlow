@@ -19,6 +19,7 @@ import {
   FileText,
   LifeBuoy,
   ShieldCheck,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.js';
 import { Badge } from '../ui/Badge.js';
@@ -59,6 +60,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const administrationNavItems = [
     { label: 'Team & Users', href: '/users', icon: Users },
     { label: 'Company Profile', href: '/company/profile', icon: Building2 },
+    {
+      label: 'Subscription & Plans',
+      href: '/company/subscription',
+      icon: CreditCard,
+      badge: company?.status === 'TRIAL' ? 'Trial' : undefined,
+    },
     { label: 'Support & Tickets', href: '/support', icon: LifeBuoy },
     { label: 'My Account', href: '/settings/account', icon: User },
   ];
@@ -82,7 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Brand Header */}
         <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-sky-500 text-white shadow-md shadow-brand-500/20 font-black text-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white shadow-md shadow-brand-500/20 font-black text-lg">
               FF
             </div>
             <div>
@@ -246,15 +253,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
+                        'flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold transition-all group',
                         isActive
                           ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-400/10 dark:text-brand-400 shadow-sm'
                           : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
                       )
                     }
                   >
-                    <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                    <span>{item.label}</span>
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                        {item.badge}
+                      </span>
+                    )}
                   </NavLink>
                 );
               })}

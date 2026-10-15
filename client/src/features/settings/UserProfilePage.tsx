@@ -31,7 +31,7 @@ export const UserProfilePage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-500 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
                 {user?.name?.slice(0, 2).toUpperCase()}
               </div>
               <div>
