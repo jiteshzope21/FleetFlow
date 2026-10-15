@@ -10,9 +10,11 @@ export class NotificationService {
     return Notification.find(filter).sort({ createdAt: -1 }).limit(20);
   }
 
-  static async markAsRead(notificationId: string): Promise<INotification | null> {
+  static async markAsRead(notificationId: string, companyId?: mongoose.Types.ObjectId): Promise<INotification | null> {
     if (!mongoose.Types.ObjectId.isValid(notificationId)) throw new Error('Invalid notification ID.');
-    return Notification.findByIdAndUpdate(notificationId, { isRead: true }, { new: true });
+    const filter: Record<string, any> = { _id: notificationId };
+    if (companyId) filter.companyId = companyId;
+    return Notification.findOneAndUpdate(filter, { isRead: true }, { new: true });
   }
 
   static async markAllAsRead(companyId?: mongoose.Types.ObjectId, userId?: mongoose.Types.ObjectId) {

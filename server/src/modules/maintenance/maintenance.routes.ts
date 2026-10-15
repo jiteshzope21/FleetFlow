@@ -37,6 +37,13 @@ maintenanceRouter.patch(
   MaintenanceController.updateMaintenance
 );
 
+maintenanceRouter.put(
+  '/:id',
+  requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER', 'MAINTENANCE_MANAGER'),
+  validateRequest({ body: updateMaintenanceSchema }),
+  MaintenanceController.updateMaintenance
+);
+
 maintenanceRouter.delete(
   '/:id',
   requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER', 'MAINTENANCE_MANAGER'),

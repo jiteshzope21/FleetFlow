@@ -37,6 +37,13 @@ vehicleRouter.patch(
   VehicleController.updateVehicle
 );
 
+vehicleRouter.put(
+  '/:id',
+  requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER'),
+  validateRequest({ body: updateVehicleSchema }),
+  VehicleController.updateVehicle
+);
+
 vehicleRouter.delete(
   '/:id',
   requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER'),

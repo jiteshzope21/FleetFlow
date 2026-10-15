@@ -37,6 +37,13 @@ driverRouter.patch(
   DriverController.updateDriver
 );
 
+driverRouter.put(
+  '/:id',
+  requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER', 'DISPATCHER'),
+  validateRequest({ body: updateDriverSchema }),
+  DriverController.updateDriver
+);
+
 driverRouter.delete(
   '/:id',
   requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER', 'DISPATCHER'),

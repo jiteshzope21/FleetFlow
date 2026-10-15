@@ -195,7 +195,17 @@ export class VehicleService {
         if (!driver) {
           throw new Error('Referenced driver not found in your company.');
         }
-        // If driver was previously assigned to another vehicle, unassign or sync
+
+        // 1. If this vehicle previously had a different driver, clear old driver's vehicle pointer
+        if (vehicle.assignedDriverId && vehicle.assignedDriverId.toString() !== driver._id.toString()) {
+          await Driver.findByIdAndUpdate(vehicle.assignedDriverId, { assignedVehicleId: null });
+        }
+
+        // 2. If the target driver previously had another vehicle, clear that vehicle's driver pointer
+        if (driver.assignedVehicleId && driver.assignedVehicleId.toString() !== vehicle._id.toString()) {
+          await Vehicle.findByIdAndUpdate(driver.assignedVehicleId, { assignedDriverId: null });
+        }
+
         vehicle.assignedDriverId = driver._id as mongoose.Types.ObjectId;
         await Driver.findByIdAndUpdate(driver._id, { assignedVehicleId: vehicle._id });
       } else {

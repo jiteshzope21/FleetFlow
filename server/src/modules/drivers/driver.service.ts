@@ -124,8 +124,8 @@ export class DriverService {
 
     await driver.save();
 
-    // If assigned to a vehicle, update vehicle's assignedDriverId
     if (vehicleObjectId) {
+      // If assigned to a vehicle, update vehicle's assignedDriverId (and clear any prior driver on that vehicle)
       await Vehicle.findByIdAndUpdate(vehicleObjectId, { assignedDriverId: driver._id });
     }
 
@@ -180,6 +180,17 @@ export class DriverService {
         if (!vehicle) {
           throw new Error('Referenced vehicle not found in your fleet.');
         }
+
+        // 1. If this driver previously had a different vehicle, clear old vehicle's driver pointer
+        if (driver.assignedVehicleId && driver.assignedVehicleId.toString() !== vehicle._id.toString()) {
+          await Vehicle.findByIdAndUpdate(driver.assignedVehicleId, { assignedDriverId: null });
+        }
+
+        // 2. If the target vehicle previously had another driver, clear that driver's vehicle pointer
+        if (vehicle.assignedDriverId && vehicle.assignedDriverId.toString() !== driver._id.toString()) {
+          await Driver.findByIdAndUpdate(vehicle.assignedDriverId, { assignedVehicleId: null });
+        }
+
         driver.assignedVehicleId = vehicle._id as mongoose.Types.ObjectId;
         await Vehicle.findByIdAndUpdate(vehicle._id, { assignedDriverId: driver._id });
       } else {

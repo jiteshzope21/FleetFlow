@@ -73,7 +73,7 @@ export const DashboardPage: React.FC = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-brand-200">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>FleetFlow Phase 2 Workspace Operational</span>
+              <span>FleetFlow Carrier Platform Operational</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
               Welcome back, {user?.name}!

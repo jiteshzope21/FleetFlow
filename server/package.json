@@ -18,7 +18,8 @@
     "test:auth": "tsx src/tests/auth_regression.test.ts",
     "test:admin": "tsx src/tests/super_admin.test.ts",
     "test:admin:login": "tsx src/tests/super_admin_login.test.ts",
-    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/dns_workaround.test.ts && tsx src/tests/lifecycle.test.ts && tsx src/tests/acceptance.test.ts && tsx src/tests/phase2.test.ts && tsx src/tests/phase3_4.test.ts && tsx src/tests/auth_regression.test.ts && tsx src/tests/super_admin.test.ts && tsx src/tests/super_admin_login.test.ts"
+    "test:audit": "tsx src/tests/comprehensive_e2e_audit.test.ts",
+    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/dns_workaround.test.ts && tsx src/tests/lifecycle.test.ts && tsx src/tests/acceptance.test.ts && tsx src/tests/phase2.test.ts && tsx src/tests/phase3_4.test.ts && tsx src/tests/auth_regression.test.ts && tsx src/tests/super_admin.test.ts && tsx src/tests/super_admin_login.test.ts && tsx src/tests/comprehensive_e2e_audit.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

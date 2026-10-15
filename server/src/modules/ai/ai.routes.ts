@@ -10,6 +10,7 @@ aiRouter.use(requireTenantContext);
 
 aiRouter.get('/health', AiController.getHealth);
 aiRouter.post('/predict-trip-cost', AiController.predictTripCost);
+aiRouter.post('/predict/trip-cost', AiController.predictTripCost);
 aiRouter.get('/insights', AiController.getFleetInsights);
 aiRouter.get('/recommendations', AiController.getRecommendations);
 aiRouter.patch('/recommendations/:id/dismiss', AiController.dismissRecommendation);

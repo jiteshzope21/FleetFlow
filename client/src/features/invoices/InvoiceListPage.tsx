@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Plus, RefreshCw, CheckCircle2, Clock, AlertCircle, DollarSign, X } from 'lucide-react';
+import { FileText, Plus, RefreshCw, CheckCircle2, Clock, AlertCircle, DollarSign, X, Eye, Printer } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import { Badge } from '../../components/ui/Badge.js';
 
 export const InvoiceListPage: React.FC = () => {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // View Invoice Detail Modal State
+  const [viewInvoice, setViewInvoice] = useState<any | null>(null);
 
   // Create Invoice Modal State
   const [createModal, setCreateModal] = useState<boolean>(false);
@@ -194,17 +198,28 @@ export const InvoiceListPage: React.FC = () => {
                     </td>
 
                     <td className="px-5 py-4 text-right">
-                      {inv.status !== 'PAID' && (
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => {
-                            setPaymentModal({ open: true, invoice: inv });
-                            setPaymentAmount(inv.totalAmount - inv.paidAmount);
-                          }}
-                          className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px]"
+                          type="button"
+                          onClick={() => setViewInvoice(inv)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          title="View Invoice Details"
                         >
-                          Record Payment
+                          <Eye className="w-4 h-4" />
                         </button>
-                      )}
+                        {inv.status !== 'PAID' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPaymentModal({ open: true, invoice: inv });
+                              setPaymentAmount(Math.round((inv.totalAmount - inv.paidAmount) * 100) / 100);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-colors"
+                          >
+                            Record Payment
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -413,6 +428,158 @@ export const InvoiceListPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Invoice Details & Printable Receipt Modal */}
+      {viewInvoice && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+              <div>
+                <span className="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">
+                  {viewInvoice.invoiceNumber}
+                </span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                  Freight Service Tax Invoice
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Issued: {new Date(viewInvoice.issueDate || viewInvoice.createdAt).toLocaleDateString()} &bull; Due: {new Date(viewInvoice.dueDate).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    viewInvoice.status === 'PAID'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400'
+                      : viewInvoice.status === 'PARTIALLY_PAID'
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-400'
+                      : 'bg-blue-100 text-blue-700 dark:bg-blue-950/70 dark:text-blue-400'
+                  }`}
+                >
+                  {viewInvoice.status}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setViewInvoice(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Billed To Customer */}
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                Billed To Customer
+              </span>
+              <p className="font-bold text-slate-900 dark:text-white text-sm">
+                {viewInvoice.customerId?.name || 'Customer'}
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-slate-500 dark:text-slate-400 mt-1">
+                <p>Email: {viewInvoice.customerId?.email || 'N/A'}</p>
+                <p>Phone: {viewInvoice.customerId?.phone || 'N/A'}</p>
+              </div>
+            </div>
+
+            {/* Line Items */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Service Line Items
+              </span>
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-500">
+                  <tr>
+                    <th className="py-2 px-3">Description</th>
+                    <th className="py-2 px-3 text-center">Qty</th>
+                    <th className="py-2 px-3 text-right">Unit Price</th>
+                    <th className="py-2 px-3 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {viewInvoice.items?.map((it: any, idx: number) => (
+                    <tr key={idx}>
+                      <td className="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200">{it.description}</td>
+                      <td className="py-2.5 px-3 text-center">{it.quantity}</td>
+                      <td className="py-2.5 px-3 text-right">₹{Number(it.unitPrice).toLocaleString()}</td>
+                      <td className="py-2.5 px-3 text-right font-bold text-slate-900 dark:text-white">
+                        ₹{Number(it.amount).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totals Summary */}
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-1.5 text-xs text-slate-600 dark:text-slate-400 max-w-xs ml-auto">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span className="font-medium text-slate-900 dark:text-white">₹{viewInvoice.subtotal?.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax Rate ({viewInvoice.taxRate}%):</span>
+                <span>₹{viewInvoice.taxAmount?.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm font-black text-slate-900 dark:text-white pt-1 border-t border-slate-100 dark:border-slate-800">
+                <span>Total Amount:</span>
+                <span>₹{viewInvoice.totalAmount?.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                <span>Total Paid:</span>
+                <span>₹{viewInvoice.paidAmount?.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-brand-600 dark:text-brand-400 font-bold">
+                <span>Remaining Balance:</span>
+                <span>₹{Math.max(0, viewInvoice.totalAmount - viewInvoice.paidAmount).toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Payment History */}
+            {viewInvoice.paymentRecords && viewInvoice.paymentRecords.length > 0 && (
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Recorded Payments History
+                </span>
+                <div className="space-y-1.5">
+                  {viewInvoice.paymentRecords.map((p: any, idx: number) => (
+                    <div key={idx} className="p-2.5 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 flex justify-between items-center text-xs">
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          ₹{Number(p.amount).toLocaleString()}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block">
+                          Method: {p.paymentMethod} &bull; {new Date(p.paymentDate).toLocaleDateString()}
+                          {p.transactionReference && ` &bull; Ref: ${p.transactionReference}`}
+                        </span>
+                      </div>
+                      <Badge variant="success" size="sm">Collected</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Footer Buttons */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
+                <Printer className="w-3.5 h-3.5" /> Print Invoice
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewInvoice(null)}
+                className="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

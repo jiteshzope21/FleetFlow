@@ -70,8 +70,8 @@ export class InvoiceService {
 
     const [invoices, total] = await Promise.all([
       Invoice.find(filter)
-        .populate('customerId', 'name companyName email phone')
-        .populate('tripId', 'tripNumber status route')
+        .populate('customerId', 'name contactPerson email phone')
+        .populate('tripId', 'tripNumber status originCity destinationCity')
         .populate('shipmentId', 'shipmentNumber origin destination')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -109,8 +109,20 @@ export class InvoiceService {
     const invoice = await Invoice.findOne({ _id: id, companyId });
     if (!invoice) throw new Error('Invoice not found.');
 
+    if (invoice.status === 'PAID') {
+      throw new Error('This invoice is already fully paid.');
+    }
+    if (invoice.status === 'CANCELLED') {
+      throw new Error('Cannot record payment for a cancelled invoice.');
+    }
+
     const paymentAmount = Number(input.amount);
     if (paymentAmount <= 0) throw new Error('Payment amount must be greater than zero.');
+
+    const remainingBalance = Math.round((invoice.totalAmount - invoice.paidAmount) * 100) / 100;
+    if (paymentAmount > remainingBalance + 0.01) {
+      throw new Error(`Payment amount ($${paymentAmount}) exceeds remaining balance ($${remainingBalance}).`);
+    }
 
     invoice.paymentRecords.push({
       amount: paymentAmount,
