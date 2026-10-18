@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import { Navigation, Clock, ShieldCheck, MapPin } from 'lucide-react';
+import { Navigation, Clock, ShieldCheck, MapPin, Mountain, Map as MapIcon, Globe } from 'lucide-react';
 
 interface RouteMapProps {
   origin?: { name: string; lat: number; lon: number } | null;
@@ -10,6 +10,32 @@ interface RouteMapProps {
   durationMinutes?: number;
   className?: string;
 }
+
+type MapLayerType = 'terrain' | 'streets' | 'satellite';
+
+const MAP_LAYERS = {
+  // Rich Topography & Terrain with elevation relief shading, mountains, rivers, and roads
+  terrain: {
+    name: 'Terrain Topo',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
+    maxZoom: 19,
+  },
+  // Full-color OpenStreetMap Road Network
+  streets: {
+    name: 'OpenStreetMap Streets',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  // High-resolution Satellite Imagery
+  satellite: {
+    name: 'Satellite Aerial',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: 19,
+  },
+};
 
 export const RouteMap: React.FC<RouteMapProps> = ({
   origin,
@@ -21,10 +47,13 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const routeLayerRef = useRef<L.Polyline | null>(null);
+  const currentTileLayerRef = useRef<L.TileLayer | null>(null);
+  const routeLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
 
-  // Initialize Map
+  const [activeLayer, setActiveLayer] = useState<MapLayerType>('terrain');
+
+  // Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -36,41 +65,62 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         zoomControl: false,
       });
 
-      // CartoDB Positron / OSM tiles for crisp modern look
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19,
-        subdomains: 'abcd',
+      // Add default layer (Terrain)
+      const initialLayerConfig = MAP_LAYERS.terrain;
+      const tileLayer = L.tileLayer(initialLayerConfig.url, {
+        attribution: initialLayerConfig.attribution,
+        maxZoom: initialLayerConfig.maxZoom,
       }).addTo(map);
+
+      currentTileLayerRef.current = tileLayer;
 
       // Add zoom control in bottom-right
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+      routeLayerGroupRef.current = L.layerGroup().addTo(map);
       markersLayerRef.current = L.layerGroup().addTo(map);
       mapInstanceRef.current = map;
     }
 
-    const timer = setTimeout(() => {
-      mapInstanceRef.current?.invalidateSize();
-    }, 200);
+    // Repeated invalidateSize to prevent partial or blank tile rendering
+    const t1 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 50);
+    const t2 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 250);
+    const t3 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 600);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
 
-  // Update Route and Markers
+  // Handle Layer Switch
+  const switchLayer = (layerType: MapLayerType) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (currentTileLayerRef.current) {
+      map.removeLayer(currentTileLayerRef.current);
+    }
+
+    const config = MAP_LAYERS[layerType];
+    const newLayer = L.tileLayer(config.url, {
+      attribution: config.attribution,
+      maxZoom: config.maxZoom,
+    }).addTo(map);
+
+    currentTileLayerRef.current = newLayer;
+    setActiveLayer(layerType);
+  };
+
+  // Update Route Polyline and Markers
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear previous markers & polyline
+    // Clear previous markers & polylines
     markersLayerRef.current?.clearLayers();
-    if (routeLayerRef.current) {
-      map.removeLayer(routeLayerRef.current);
-      routeLayerRef.current = null;
-    }
+    routeLayerGroupRef.current?.clearLayers();
 
     const boundsPoints: [number, number][] = [];
 
@@ -79,19 +129,21 @@ export const RouteMap: React.FC<RouteMapProps> = ({
       const originIcon = L.divIcon({
         className: 'custom-route-icon',
         html: `
-          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
-            <div style="position: absolute; width: 32px; height: 32px; background: rgba(16, 185, 129, 0.25); border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-            <div style="width: 24px; height: 24px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid white;">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+            <div style="position: absolute; width: 36px; height: 36px; background: rgba(16, 185, 129, 0.35); border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+            <div style="width: 28px; height: 28px; background: #059669; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.35); border: 2.5px solid white;">
               A
             </div>
           </div>
         `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       const originMarker = L.marker([origin.lat, origin.lon], { icon: originIcon }).bindPopup(
-        `<b>Start / Origin</b><br/>${origin.name}`
+        `<div style="font-family: sans-serif; font-size: 12px; padding: 2px;">
+          <b style="color: #059669;">● Start / Origin Hub</b><br/>${origin.name}
+        </div>`
       );
       markersLayerRef.current?.addLayer(originMarker);
       boundsPoints.push([origin.lat, origin.lon]);
@@ -102,19 +154,21 @@ export const RouteMap: React.FC<RouteMapProps> = ({
       const destIcon = L.divIcon({
         className: 'custom-route-icon',
         html: `
-          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
-            <div style="position: absolute; width: 32px; height: 32px; background: rgba(239, 68, 68, 0.25); border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-            <div style="width: 24px; height: 24px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid white;">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+            <div style="position: absolute; width: 36px; height: 36px; background: rgba(225, 29, 72, 0.35); border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+            <div style="width: 28px; height: 28px; background: #e11d48; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.35); border: 2.5px solid white;">
               B
             </div>
           </div>
         `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       const destMarker = L.marker([destination.lat, destination.lon], { icon: destIcon }).bindPopup(
-        `<b>Destination / End</b><br/>${destination.name}`
+        `<div style="font-family: sans-serif; font-size: 12px; padding: 2px;">
+          <b style="color: #e11d48;">● Destination / End Hub</b><br/>${destination.name}
+        </div>`
       );
       markersLayerRef.current?.addLayer(destMarker);
       boundsPoints.push([destination.lat, destination.lon]);
@@ -122,30 +176,29 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
     // Draw route polyline
     if (routeCoordinates && routeCoordinates.length > 0) {
-      // Background glow polyline
+      // Background Glow
       const glowPolyline = L.polyline(routeCoordinates, {
-        color: '#6366f1',
-        weight: 7,
-        opacity: 0.35,
+        color: '#f97316',
+        weight: 9,
+        opacity: 0.45,
         lineCap: 'round',
         lineJoin: 'round',
       });
-      markersLayerRef.current?.addLayer(glowPolyline);
+      routeLayerGroupRef.current?.addLayer(glowPolyline);
 
-      // Active sharp polyline
-      const activePolyline = L.polyline(routeCoordinates, {
-        color: '#4f46e5',
-        weight: 4,
-        opacity: 0.95,
+      // Main Route Polyline (Vibrant and clear across all terrains)
+      const mainPolyline = L.polyline(routeCoordinates, {
+        color: '#c2410c',
+        weight: 5,
+        opacity: 1,
         lineCap: 'round',
         lineJoin: 'round',
       });
-      markersLayerRef.current?.addLayer(activePolyline);
-      routeLayerRef.current = activePolyline;
+      routeLayerGroupRef.current?.addLayer(mainPolyline);
 
-      // Fit bounds to route
-      map.fitBounds(activePolyline.getBounds(), {
-        padding: [45, 45],
+      // Fit map bounds to entire route
+      map.fitBounds(mainPolyline.getBounds(), {
+        padding: [50, 50],
         maxZoom: 14,
       });
     } else if (boundsPoints.length > 0) {
@@ -153,7 +206,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         map.setView(boundsPoints[0], 10);
       } else {
         const bounds = L.latLngBounds(boundsPoints.map((p) => L.latLng(p[0], p[1])));
-        map.fitBounds(bounds, { padding: [50, 50] });
+        map.fitBounds(bounds, { padding: [55, 55] });
       }
     }
   }, [origin, destination, routeCoordinates]);
@@ -166,53 +219,95 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   };
 
   return (
-    <div className={`relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md ${className}`}>
-      {/* Map Container */}
-      <div ref={mapContainerRef} className="w-full h-full min-h-[360px] z-0" />
+    <div className={`relative w-full rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 shadow-lg ${className}`}>
+      {/* Map DOM Canvas */}
+      <div ref={mapContainerRef} className="w-full h-full min-h-[400px] z-0" />
 
-      {/* Floating Modern HUD Header */}
-      <div className="absolute top-3 left-3 right-3 sm:right-auto z-[1000] pointer-events-auto">
-        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-lg flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-              <Navigation className="w-4 h-4 animate-spin-slow" />
-            </span>
-            <div>
-              <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <span>{origin ? origin.name.split(',')[0] : 'Origin'}</span>
-                <span className="text-slate-400">➔</span>
-                <span>{destination ? destination.name.split(',')[0] : 'Destination'}</span>
-              </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                OSRM Indian National Highway Optimal Route
-              </p>
+      {/* Top Floating HUD: Route Details & Layer Switcher */}
+      <div className="absolute top-3 left-3 right-3 z-[1000] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        {/* Route Info Badge */}
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md flex items-center gap-2.5 pointer-events-auto">
+          <span className="p-1.5 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400">
+            <Navigation className="w-4 h-4" />
+          </span>
+          <div>
+            <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span>{origin ? origin.name.split(',')[0] : 'Origin'}</span>
+              <span className="text-primary-500 font-extrabold">➔</span>
+              <span>{destination ? destination.name.split(',')[0] : 'Destination'}</span>
+            </div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <span>OpenRouteService Highway Optimal</span>
+              {(distanceKm !== undefined || durationMinutes !== undefined) && (
+                <>
+                  <span>•</span>
+                  {distanceKm !== undefined && (
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                      {distanceKm} KM
+                    </span>
+                  )}
+                  {durationMinutes !== undefined && durationMinutes > 0 && (
+                    <span className="font-medium text-slate-600 dark:text-slate-300">
+                      (~{formatDriveTime(durationMinutes)})
+                    </span>
+                  )}
+                </>
+              )}
             </div>
           </div>
+        </div>
 
-          {(distanceKm !== undefined || durationMinutes !== undefined) && (
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700 text-xs">
-              {distanceKm !== undefined && (
-                <div className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {distanceKm} KM
-                </div>
-              )}
-              {durationMinutes !== undefined && durationMinutes > 0 && (
-                <div className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-400 font-medium flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  ~{formatDriveTime(durationMinutes)}
-                </div>
-              )}
-            </div>
-          )}
+        {/* Visual Map Perspective / Terrain Switcher */}
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md flex items-center gap-1 pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => switchLayer('terrain')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+              activeLayer === 'terrain'
+                ? 'bg-emerald-600 text-white shadow-sm font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+            title="Terrain, elevation relief, topography, hills, rivers and roads"
+          >
+            <Mountain className="w-3.5 h-3.5" />
+            <span>Terrain Topo</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => switchLayer('streets')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+              activeLayer === 'streets'
+                ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+            title="OpenStreetMap high-contrast street and highway network"
+          >
+            <MapIcon className="w-3.5 h-3.5" />
+            <span>Streets</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => switchLayer('satellite')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+              activeLayer === 'satellite'
+                ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+            title="Satellite photorealistic aerial imagery from space"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Satellite</span>
+          </button>
         </div>
       </div>
 
-      {/* Floating Status Pill */}
+      {/* Bottom Floating Legend / Status Pill */}
       <div className="absolute bottom-3 left-3 z-[1000] pointer-events-none">
-        <div className="bg-slate-900/80 dark:bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-white/80 text-[10px] flex items-center gap-1.5 shadow-sm">
-          <ShieldCheck className="w-3 h-3 text-emerald-400" />
-          <span>Interactive Route View • Pan & Zoom Enabled</span>
+        <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-white text-[10px] flex items-center gap-2 shadow-sm">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>India Freight Corridor • High-Resolution Terrain Navigation</span>
         </div>
       </div>
     </div>

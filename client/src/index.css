@@ -34,4 +34,31 @@
   color: #f4f6f4;
 }
 
+/* ======================================================== */
+/* LEAFLET MAP TILE RENDERING FIXES (Overrides Tailwind CSS) */
+/* ======================================================== */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background-color: #e2e8f0 !important;
+  font-family: inherit;
+  z-index: 1;
+}
+
+.leaflet-container img {
+  max-width: none !important;
+  max-height: none !important;
+  border-style: none !important;
+}
+
+.leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+  visibility: inherit !important;
+}
+
+.leaflet-tile-container {
+  pointer-events: none;
+}
+
 

@@ -111,12 +111,55 @@ export const routeService = {
   },
 
   /**
-   * Calculate driving route using OSRM
+   * Calculate driving route using OpenRouteService with OSRM fallback
    */
   async calculateRoute(
     origin: { lat: number; lon: number },
     destination: { lat: number; lon: number }
   ): Promise<RouteResult> {
+    const orsKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjRmOTA1NzlmNTBkMDQ0NjFiYTdhMmJjNTAzMWQzNmY2IiwiaCI6Im11cm11cjY0In0=';
+
+    // 1. Try OpenRouteService (Highway & Heavy Logistics Directions)
+    if (orsKey) {
+      try {
+        const orsUrl = `https://api.openrouteservice.org/v2/directions/driving-car?start=${origin.lon},${origin.lat}&end=${destination.lon},${destination.lat}`;
+        const res = await fetch(orsUrl, {
+          headers: {
+            'Authorization': orsKey,
+            'Accept': 'application/json, application/geo+json',
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.features && data.features.length > 0) {
+            const feature = data.features[0];
+            const summary = feature.properties?.summary;
+            const distMeters = summary?.distance || 0;
+            const durationSec = summary?.duration || 0;
+
+            const distanceKm = Math.round((distMeters / 1000) * 10) / 10;
+            const durationMinutes = Math.round(durationSec / 60);
+
+            // GeoJSON coordinates are [lon, lat], Leaflet polyline expects [lat, lon]
+            const coordinates: [number, number][] = feature.geometry.coordinates.map(
+              (coord: [number, number]) => [coord[1], coord[0]]
+            );
+
+            return {
+              distanceKm,
+              durationMinutes,
+              coordinates,
+              summary: 'OpenRouteService Commercial Highway Route',
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('OpenRouteService request error, falling back to OSRM:', err);
+      }
+    }
+
+    // 2. Fallback to OSRM
     try {
       const url = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson`;
       const res = await fetch(url);
@@ -128,7 +171,6 @@ export const routeService = {
           const distanceKm = Math.round((route.distance / 1000) * 10) / 10;
           const durationMinutes = Math.round(route.duration / 60);
 
-          // OSRM coordinates are [lon, lat], Leaflet polyline expects [lat, lon]
           const coordinates: [number, number][] = route.geometry.coordinates.map(
             (coord: [number, number]) => [coord[1], coord[0]]
           );
@@ -137,7 +179,7 @@ export const routeService = {
             distanceKm,
             durationMinutes,
             coordinates,
-            summary: route.legs?.[0]?.summary || 'Optimal Highway Route',
+            summary: route.legs?.[0]?.summary || 'OSRM National Highway Route',
           };
         }
       }
@@ -145,7 +187,7 @@ export const routeService = {
       console.warn('OSRM routing request failed, computing geodesic road estimate:', err);
     }
 
-    // Geodesic fallback with road curvature factor 1.28
+    // 3. Geodesic fallback with road curvature factor 1.28
     const distanceKm = Math.round(haversineDistance(origin, destination) * 1.28 * 10) / 10;
     const durationMinutes = Math.round((distanceKm / 55) * 60); // 55 km/h commercial average
     const coordinates: [number, number][] = [
