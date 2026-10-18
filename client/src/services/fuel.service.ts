@@ -44,4 +44,26 @@ export const fuelService = {
     const res = await api.delete<ApiResponse<{ message: string }>>(`/fuel/${id}`);
     return res.data;
   },
+
+  async getLiveFuelPrice(city: string, fuelType: string = 'DIESEL') {
+    const res = await api.get<ApiResponse<{
+      city: string;
+      matchedCity: string;
+      fuelType: string;
+      price: number;
+      currency: string;
+      unit: string;
+      cached: boolean;
+      timestamp: string;
+      isEstimate: boolean;
+    }>>('/fuel/live-price', {
+      params: { city, fuelType },
+    });
+    return res.data.data;
+  },
+
+  async getLiveCities() {
+    const res = await api.get<ApiResponse<{ name: string; value: string }[]>>('/fuel/live-cities');
+    return res.data.data;
+  },
 };

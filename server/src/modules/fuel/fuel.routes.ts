@@ -21,6 +21,10 @@ fuelRouter.get(
   FuelController.getFuelLogs
 );
 
+// Live Indian Fuel Price Integration with 12h Server Caching
+fuelRouter.get('/live-price', FuelController.getLiveFuelPrice);
+fuelRouter.get('/live-cities', FuelController.getLiveCities);
+
 fuelRouter.get('/:id', FuelController.getFuelLogById);
 
 fuelRouter.post(

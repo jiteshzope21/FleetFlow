@@ -42,4 +42,5 @@ export const ENV = {
   SUPER_ADMIN_EMAIL: (process.env.SUPER_ADMIN_EMAIL || 'superadmin@fleetflow.local').toLowerCase().trim(),
   SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD || 'FleetFlowAdmin2026!',
   SUPER_ADMIN_NAME: (process.env.SUPER_ADMIN_NAME || 'FleetFlow Platform Admin').trim(),
+  INDIAN_FUEL_API_KEY: process.env.INDIAN_FUEL_API_KEY || 'sk-live-82cDXSiIMsV0ClPsEcF5EW50t0rNJ3OxOsR7hGPj',
 };

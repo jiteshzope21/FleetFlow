@@ -70,4 +70,26 @@ export class FuelController {
       errorResponse(res, err.message, status);
     }
   }
+
+  static async getLiveFuelPrice(req: Request, res: Response): Promise<void> {
+    try {
+      const city = (req.query.city as string) || 'Delhi';
+      const fuelType = (req.query.fuelType as string) || 'DIESEL';
+      const { LiveFuelService } = await import('./liveFuel.service.js');
+      const data = await LiveFuelService.getPriceForCity(city, fuelType);
+      successResponse(res, data);
+    } catch (err: any) {
+      errorResponse(res, err.message || 'Failed to fetch live fuel price', 500);
+    }
+  }
+
+  static async getLiveCities(_req: Request, res: Response): Promise<void> {
+    try {
+      const { LiveFuelService } = await import('./liveFuel.service.js');
+      const cities = await LiveFuelService.getCitiesList();
+      successResponse(res, cities);
+    } catch (err: any) {
+      errorResponse(res, err.message || 'Failed to fetch cities list', 500);
+    }
+  }
 }
