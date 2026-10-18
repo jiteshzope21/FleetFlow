@@ -89,8 +89,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Brand Header */}
         <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white shadow-md shadow-brand-500/20 font-black text-lg">
-              FF
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shadow-md shadow-slate-900/10 border border-slate-200 dark:border-slate-800 bg-[#0b2347]">
+              <img src="/logo.png" alt="FleetFlow Logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">

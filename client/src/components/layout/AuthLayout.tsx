@@ -19,8 +19,8 @@ export const AuthLayout: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white font-black text-xl shadow-lg shadow-brand-500/30">
-              FF
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden shadow-lg shadow-brand-500/30 border border-white/20 bg-[#0b2347]">
+              <img src="/logo.png" alt="FleetFlow Logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <span className="text-xl font-extrabold tracking-tight">FleetFlow</span>

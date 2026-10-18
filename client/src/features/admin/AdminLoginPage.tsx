@@ -87,8 +87,8 @@ export const AdminLoginPage: React.FC = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 text-white shadow-xl shadow-brand-950/50">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden border border-slate-700 bg-[#0b2347] shadow-xl shadow-brand-950/50">
+            <img src="/logo.png" alt="FleetFlow Logo" className="h-full w-full object-cover" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             FleetFlow Platform Administration

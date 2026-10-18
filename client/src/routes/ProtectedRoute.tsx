@@ -15,7 +15,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+          <div className="h-14 w-14 rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-800 bg-[#0b2347] mb-1">
+            <img src="/logo.png" alt="FleetFlow Logo" className="h-full w-full object-cover" />
+          </div>
+          <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Initializing FleetFlow Session...
           </p>

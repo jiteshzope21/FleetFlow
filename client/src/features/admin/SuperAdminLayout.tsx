@@ -97,8 +97,8 @@ export const SuperAdminLayout: React.FC = () => {
         {/* Brand Header */}
         <div className="h-16 px-6 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-brand-900/40">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="h-10 w-10 rounded-xl overflow-hidden border border-slate-700 bg-[#0b2347] flex items-center justify-center shadow-lg shadow-brand-900/40">
+              <img src="/logo.png" alt="FleetFlow Logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">

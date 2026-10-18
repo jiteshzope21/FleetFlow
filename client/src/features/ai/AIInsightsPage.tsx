@@ -19,6 +19,7 @@ import {
   Zap,
   Gauge,
   SlidersHorizontal,
+  X,
 } from 'lucide-react';
 import {
   ITripCostPrediction,
@@ -406,7 +407,7 @@ export const AIInsightsPage: React.FC = () => {
       {/* ======================================================== */}
       {/* REAL-TIME INDIAN ROUTE PLANNER & VISUAL MAP STUDIO       */}
       {/* ======================================================== */}
-      <Card className="border-primary-500/30 overflow-hidden shadow-lg bg-gradient-to-b from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+      <Card className="border-primary-500/30 shadow-lg bg-gradient-to-b from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
         <CardHeader className="pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
@@ -452,116 +453,166 @@ export const AIInsightsPage: React.FC = () => {
         <CardContent className="pt-4 space-y-4">
           {plannerMode === 'route' && (
             <>
-              {/* Origin / Destination Search Bar */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                {/* Origin Input */}
-                <div ref={originRef} className="relative md:col-span-5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                    Start / Origin Hub (India)
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-emerald-600" />
-                    <Input
-                      type="text"
-                      value={originQuery}
-                      onChange={(e) => handleOriginSearch(e.target.value)}
-                      onFocus={() => {
-                        setShowOriginDropdown(true);
-                        if (originSuggestions.length === 0) {
-                          setOriginSuggestions(POPULAR_INDIAN_HUBS.slice(0, 5));
-                        }
-                      }}
-                      placeholder="e.g. Mumbai, Maharashtra"
-                      className="pl-9 pr-3 text-sm font-medium"
-                    />
+              {/* Refined Unified Origin & Destination Routing Bar */}
+              <div className="relative p-3.5 bg-slate-50/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-11 gap-3 items-center">
+                  {/* Origin Input */}
+                  <div ref={originRef} className="relative md:col-span-5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" />
+                        Origin / Start Hub
+                      </span>
+                      {originLocation && (
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {originLocation.state || 'India'}
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative flex items-center">
+                      <MapPin className="absolute left-3 w-4 h-4 text-emerald-600 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={originQuery}
+                        onChange={(e) => handleOriginSearch(e.target.value)}
+                        onFocus={() => {
+                          setShowOriginDropdown(true);
+                          if (originSuggestions.length === 0) {
+                            setOriginSuggestions(POPULAR_INDIAN_HUBS.slice(0, 6));
+                          }
+                        }}
+                        placeholder="Type city or hub (e.g. Mumbai, Delhi, Pune)..."
+                        className="w-full h-11 pl-9 pr-8 text-sm font-medium bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+                      />
+                      {originQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOriginQuery('');
+                            setOriginSuggestions(POPULAR_INDIAN_HUBS.slice(0, 6));
+                            setShowOriginDropdown(true);
+                          }}
+                          className="absolute right-2.5 p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          title="Clear input"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Autocomplete Dropdown */}
+                    {showOriginDropdown && originSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1.5 z-[1050] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-64 overflow-y-auto">
+                        <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                          <span>Select Indian Location</span>
+                          <span>{originSuggestions.length} Results</span>
+                        </div>
+                        {originSuggestions.map((loc, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => selectOrigin(loc)}
+                            className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30 flex items-center justify-between transition-colors border-b border-slate-100 dark:border-slate-800/60 last:border-0 group"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 flex-shrink-0" />
+                              <span className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
+                                {loc.name}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-2 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 whitespace-nowrap">
+                              {loc.city}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Autocomplete Dropdown */}
-                  {showOriginDropdown && originSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-56 overflow-y-auto">
-                      <div className="p-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 border-b border-slate-100 dark:border-slate-800">
-                        Suggested Indian Hubs
-                      </div>
-                      {originSuggestions.map((loc, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => selectOrigin(loc)}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between transition-colors border-b border-slate-50 dark:border-slate-800/50 last:border-0"
-                        >
-                          <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
-                            {loc.name}
-                          </span>
-                          <span className="text-[10px] text-slate-400 ml-2 whitespace-nowrap">
-                            {loc.city}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Swap Button */}
-                <div className="md:col-span-2 flex justify-center pt-5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSwapLocations}
-                    title="Swap Origin and Destination"
-                    className="rounded-full w-9 h-9 p-0 flex items-center justify-center hover:bg-primary-50 dark:hover:bg-primary-950/40 border-slate-300 dark:border-slate-700"
-                  >
-                    <ArrowRightLeft className="w-4 h-4 text-primary-600 dark:text-primary-400" />
-                  </Button>
-                </div>
-
-                {/* Destination Input */}
-                <div ref={destRef} className="relative md:col-span-5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
-                    Destination / End Hub (India)
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-rose-500" />
-                    <Input
-                      type="text"
-                      value={destQuery}
-                      onChange={(e) => handleDestSearch(e.target.value)}
-                      onFocus={() => {
-                        setShowDestDropdown(true);
-                        if (destSuggestions.length === 0) {
-                          setDestSuggestions(POPULAR_INDIAN_HUBS.slice(0, 5));
-                        }
-                      }}
-                      placeholder="e.g. Pune, Maharashtra"
-                      className="pl-9 pr-3 text-sm font-medium"
-                    />
+                  {/* Swap Button (Clean Center Position) */}
+                  <div className="md:col-span-1 flex items-center justify-center pt-5 md:pt-4">
+                    <button
+                      type="button"
+                      onClick={handleSwapLocations}
+                      title="Swap Origin and Destination"
+                      className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 hover:bg-primary-50 dark:hover:bg-primary-950/50 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-primary-600 dark:text-primary-400 hover:scale-105 active:scale-95 transition-all group"
+                    >
+                      <ArrowRightLeft className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
+                    </button>
                   </div>
 
-                  {/* Autocomplete Dropdown */}
-                  {showDestDropdown && destSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-56 overflow-y-auto">
-                      <div className="p-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 border-b border-slate-100 dark:border-slate-800">
-                        Suggested Indian Hubs
-                      </div>
-                      {destSuggestions.map((loc, idx) => (
+                  {/* Destination Input */}
+                  <div ref={destRef} className="relative md:col-span-5">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/20" />
+                        Destination / End Hub
+                      </span>
+                      {destLocation && (
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {destLocation.state || 'India'}
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative flex items-center">
+                      <MapPin className="absolute left-3 w-4 h-4 text-rose-500 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={destQuery}
+                        onChange={(e) => handleDestSearch(e.target.value)}
+                        onFocus={() => {
+                          setShowDestDropdown(true);
+                          if (destSuggestions.length === 0) {
+                            setDestSuggestions(POPULAR_INDIAN_HUBS.slice(0, 6));
+                          }
+                        }}
+                        placeholder="Type destination city (e.g. Pune, Jaipur, Chennai)..."
+                        className="w-full h-11 pl-9 pr-8 text-sm font-medium bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+                      />
+                      {destQuery && (
                         <button
-                          key={idx}
                           type="button"
-                          onClick={() => selectDest(loc)}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between transition-colors border-b border-slate-50 dark:border-slate-800/50 last:border-0"
+                          onClick={() => {
+                            setDestQuery('');
+                            setDestSuggestions(POPULAR_INDIAN_HUBS.slice(0, 6));
+                            setShowDestDropdown(true);
+                          }}
+                          className="absolute right-2.5 p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          title="Clear input"
                         >
-                          <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
-                            {loc.name}
-                          </span>
-                          <span className="text-[10px] text-slate-400 ml-2 whitespace-nowrap">
-                            {loc.city}
-                          </span>
+                          <X className="w-3.5 h-3.5" />
                         </button>
-                      ))}
+                      )}
                     </div>
-                  )}
+
+                    {/* Autocomplete Dropdown */}
+                    {showDestDropdown && destSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1.5 z-[1050] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-64 overflow-y-auto">
+                        <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                          <span>Select Indian Location</span>
+                          <span>{destSuggestions.length} Results</span>
+                        </div>
+                        {destSuggestions.map((loc, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => selectDest(loc)}
+                            className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-rose-50/70 dark:hover:bg-rose-950/30 flex items-center justify-between transition-colors border-b border-slate-100 dark:border-slate-800/60 last:border-0 group"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-500 flex-shrink-0" />
+                              <span className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-rose-700 dark:group-hover:text-rose-300 truncate">
+                                {loc.name}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-2 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 whitespace-nowrap">
+                              {loc.city}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
