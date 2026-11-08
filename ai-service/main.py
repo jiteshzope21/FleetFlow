@@ -1,4 +1,9 @@
 import os
+import sys
+try:
+    import torch
+except Exception:
+    pass
 import json
 import numpy as np
 import pandas as pd
@@ -324,6 +329,147 @@ def get_actionable_recommendations(req: OperationalInsightRequest):
         "recommendations": recs
     }
 
+# ----------------- Support SLM Chatbot Endpoints ----------------- #
+
+class SupportChatRequest(BaseModel):
+    message: str = Field(..., description="User message or query")
+    history: Optional[List[Dict[str, str]]] = Field(default=[], description="Previous conversation turns")
+    user_role: Optional[str] = Field(default="DISPATCHER", description="Authenticated user's role")
+    company_name: Optional[str] = Field(default="FleetFlow Workspace", description="Authenticated workspace name")
+    company_id: Optional[str] = Field(default=None, description="Authenticated company ID")
+
+class SupportChatResponse(BaseModel):
+    success: bool
+    response: str
+    model_status: str
+    has_lora: bool
+    rag_sources: List[Dict[str, Any]] = []
+    latency_ms: float
+    should_escalate: bool
+    escalation_metadata: Optional[Dict[str, Any]] = None
+    suggested_followups: List[str] = []
+
+slm_engine = None
+
+def get_slm_engine():
+    global slm_engine
+    if slm_engine is None:
+        try:
+            import sys
+            support_dir = os.path.join(os.path.dirname(__file__), 'support_slm')
+            if support_dir not in sys.path:
+                sys.path.insert(0, support_dir)
+            from inference import FleetFlowSLM
+            slm_engine = FleetFlowSLM()
+            print("FleetFlow SLM Engine initialized successfully on FastAPI service.")
+        except Exception as e:
+            print(f"Warning: Failed to load SLM engine: {e}")
+    return slm_engine
+
+@app.post("/support/chat", response_model=SupportChatResponse)
+def support_chat(req: SupportChatRequest):
+    engine = get_slm_engine()
+    if engine is None:
+        # Fallback: use RAG engine directly to provide a knowledge‑based answer instead of a generic offline message.
+        from inference import RAGEngine
+        try:
+            rag = RAGEngine(device="cpu")
+            docs = rag.search(req.message, top_k=2)
+            sources = [{"source": d["source"], "header": d["header"], "score": d["score"]} for d in docs]
+            # Simple concatenation of headers as a provisional answer.
+            answer_parts = [f"**{d['header']}**: {d['source']}" for d in docs]
+            answer = "\n\n".join(answer_parts) if answer_parts else "I’m currently unable to retrieve a specific answer. Please try rephrasing your question."
+        except Exception as e:
+            print(f"[Fallback] RAG initialization failed: {e}")
+            answer = "I’m currently unable to process your request. Please try again later."
+            sources = []
+        return SupportChatResponse(
+            success=True,
+            response=answer,
+            model_status="FALLBACK_RAG",
+            has_lora=False,
+            rag_sources=sources,
+            latency_ms=0.0,
+            should_escalate=False,
+            escalation_metadata=None,
+            suggested_followups=["How do I open a support ticket?", "What topics can I ask about?"]
+        )
+
+    try:
+        res = engine.generate_response(
+            query=req.message,
+            history=req.history,
+            user_role=req.user_role or "DISPATCHER",
+            company_name=req.company_name or "FleetFlow Workspace"
+        )
+        return SupportChatResponse(
+            success=True,
+            response=res["response"],
+            model_status=res["model_status"],
+            has_lora=res["has_lora"],
+            rag_sources=res["rag_sources"],
+            latency_ms=res["latency_ms"],
+            should_escalate=res["should_escalate"],
+            escalation_metadata=res.get("escalation_metadata"),
+            suggested_followups=res.get("suggested_followups", [])
+        )
+    except Exception as err:
+        print(f"SLM generation error: {err}")
+        return SupportChatResponse(
+            success=False,
+            response=f"I encountered a temporary processing error. Please try asking again, or open a support ticket on /support if the issue persists.",
+            model_status="ERROR_RECOVERY",
+            has_lora=False,
+            rag_sources=[],
+            latency_ms=0.0,
+            should_escalate=True,
+            escalation_metadata={
+                "category": "TECHNICAL",
+                "priority": "HIGH",
+                "suggested_subject": req.message[:80]
+            },
+            suggested_followups=["Open Support Ticket"]
+        )
+
+@app.get("/support/model-info")
+def support_model_info():
+    engine = get_slm_engine()
+    if engine is None:
+        return {
+            "status": "offline",
+            "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+            "active_mode": "UNINITIALIZED",
+            "has_lora": False,
+            "rag_chunks": 0
+        }
+    return {
+        "status": "online",
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "active_mode": engine.model_status,
+        "has_lora": engine.has_lora,
+        "device": engine.device,
+        "rag_chunks": len(engine.rag_engine.documents) if engine.rag_engine else 0
+    }
+
+@app.post("/support/reindex")
+def support_reindex():
+    engine = get_slm_engine()
+    if engine and engine.rag_engine:
+        engine.rag_engine.build_index()
+        return {"success": True, "indexed_chunks": len(engine.rag_engine.documents)}
+    return {"success": False, "error": "RAG engine not available"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
+
+    @app.get("/ready")
+    def readiness_check():
+        """Readiness endpoint used by the backend to verify the SLM is fully initialized.
+        Returns model status and RAG availability.
+        """
+        return {
+            "model_status": "ready" if model is not None else "fallback",
+            "rag_ready": True if os.path.isdir(os.path.join(os.path.dirname(__file__), "support_slm", "knowledge_base", "index")) else False,
+            "has_lora": os.path.exists(os.path.join(os.path.dirname(__file__), "support_slm", "models", "fleetflow_qwen_lora", "adapter_model.pt"))
+        }

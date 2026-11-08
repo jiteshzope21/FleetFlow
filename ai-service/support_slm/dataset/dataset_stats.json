@@ -1,0 +1,55 @@
+{
+  "total_examples": 114,
+  "splits": {
+    "train": 92,
+    "val": 8,
+    "test": 21
+  },
+  "category_distribution": {
+    "General Knowledge": 3,
+    "Account & Auth": 3,
+    "Fleet & Vehicles": 29,
+    "Drivers": 3,
+    "Customers": 2,
+    "Shipments": 4,
+    "Trips": 4,
+    "Proof of Delivery": 2,
+    "AI & Cost Estimation": 22,
+    "Finance": 4,
+    "Reports": 2,
+    "Maintenance & Fuel": 1,
+    "Settings & Subscriptions": 2,
+    "Troubleshooting": 4,
+    "Support & Escalation": 22,
+    "Safety & Adversarial": 6,
+    "Maintenance & Expenses": 1
+  },
+  "difficulty_distribution": {
+    "beginner": 35,
+    "intermediate": 51,
+    "advanced": 28
+  },
+  "user_role_distribution": {
+    "COMPANY_OWNER": 31,
+    "MANAGER": 29,
+    "DISPATCHER": 16,
+    "ACCOUNTANT": 14,
+    "FLEET_MANAGER": 15,
+    "DRIVER": 6,
+    "VIEWER": 1,
+    "MAINTENANCE_MANAGER": 1,
+    "SUPER_ADMIN": 1
+  },
+  "safety_category_distribution": {
+    "standard_support": 105,
+    "Can a dispatcher change user passwords or roles?": 1,
+    "What happens if the driver is already assigned to another truck?": 1,
+    "Yes please create the ticket for me.": 1,
+    "tenant_isolation_enforcement": 1,
+    "credential_protection": 3,
+    "unsupported_feature_refusal": 2
+  },
+  "unique_queries": 114,
+  "duplicate_queries": 0,
+  "validation_status": "PASSED"
+}

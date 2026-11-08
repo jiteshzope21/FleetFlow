@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar.js';
 import { Topbar } from './Topbar.js';
+import { SupportChatbot } from '../chat/SupportChatbot.js';
 
 export const AppLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,6 +22,9 @@ export const AppLayout: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Floating AI Customer Support Chatbot */}
+      <SupportChatbot />
     </div>
   );
 };

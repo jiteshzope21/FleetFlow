@@ -1,0 +1,38 @@
+{
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "adapter_type": "LoRA (Native PyTorch)",
+  "r": 16,
+  "alpha": 32,
+  "trainable_params": 2179072,
+  "total_params": 1543714304,
+  "trainable_percent": 0.14115772551654737,
+  "epochs": 3,
+  "learning_rate": 0.0002,
+  "train_samples": 92,
+  "val_samples": 8,
+  "epoch_metrics": [
+    {
+      "epoch": 1,
+      "train_loss": 1.933,
+      "val_loss": 1.2657,
+      "val_perplexity": 3.55,
+      "duration_seconds": 13.5
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.9719,
+      "val_loss": 0.7533,
+      "val_perplexity": 2.12,
+      "duration_seconds": 13.0
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.7289,
+      "val_loss": 0.7893,
+      "val_perplexity": 2.2,
+      "duration_seconds": 12.9
+    }
+  ],
+  "completed_at": "2026-11-09 01:18:50",
+  "training_duration_seconds": 39.5
+}

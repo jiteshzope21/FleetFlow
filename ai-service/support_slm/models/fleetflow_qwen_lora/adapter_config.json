@@ -1,0 +1,14 @@
+{
+  "base_model_name_or_path": "Qwen/Qwen2.5-1.5B-Instruct",
+  "peft_type": "LORA",
+  "r": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.05,
+  "target_modules": [
+    "q_proj",
+    "v_proj"
+  ],
+  "task_type": "CAUSAL_LM",
+  "trained_date": "2026-11-09 01:18:50",
+  "num_adapters_saved": 56
+}

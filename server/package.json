@@ -19,9 +19,11 @@
     "test:admin": "tsx src/tests/super_admin.test.ts",
     "test:admin:login": "tsx src/tests/super_admin_login.test.ts",
     "test:audit": "tsx src/tests/comprehensive_e2e_audit.test.ts",
-    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/dns_workaround.test.ts && tsx src/tests/lifecycle.test.ts && tsx src/tests/acceptance.test.ts && tsx src/tests/phase2.test.ts && tsx src/tests/phase3_4.test.ts && tsx src/tests/auth_regression.test.ts && tsx src/tests/super_admin.test.ts && tsx src/tests/super_admin_login.test.ts && tsx src/tests/comprehensive_e2e_audit.test.ts"
+    "test:chat": "tsx src/tests/support_chat.test.ts",
+    "test": "tsx src/tests/env_loading.test.ts && tsx src/tests/dns_workaround.test.ts && tsx src/tests/lifecycle.test.ts && tsx src/tests/acceptance.test.ts && tsx src/tests/phase2.test.ts && tsx src/tests/phase3_4.test.ts && tsx src/tests/auth_regression.test.ts && tsx src/tests/super_admin.test.ts && tsx src/tests/super_admin_login.test.ts && tsx src/tests/comprehensive_e2e_audit.test.ts && tsx src/tests/support_chat.test.ts"
   },
   "dependencies": {
+    "node-fetch": "^3.3.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

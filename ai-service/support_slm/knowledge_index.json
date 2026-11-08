@@ -1,0 +1,466 @@
+[
+  {
+    "id": "01_architecture_and_security.md#0",
+    "source": "01_architecture_and_security.md",
+    "topic": "Architecture And Security",
+    "header": "FleetFlow Architecture, Authentication & Security",
+    "text": "Module: Architecture And Security | Topic: FleetFlow Architecture, Authentication & Security\n# FleetFlow Architecture, Authentication & Security\n",
+    "length": 145
+  },
+  {
+    "id": "01_architecture_and_security.md#1",
+    "source": "01_architecture_and_security.md",
+    "topic": "Architecture And Security",
+    "header": "System Overview",
+    "text": "Module: Architecture And Security | Topic: System Overview\nFleetFlow is an enterprise-grade multi-tenant Software-as-a-Service (SaaS) platform built specifically for transport and logistics operators, fleet owners, and freight forwarders. FleetFlow acts as a centralized operating system for logistics companies.",
+    "length": 312
+  },
+  {
+    "id": "01_architecture_and_security.md#2",
+    "source": "01_architecture_and_security.md",
+    "topic": "Architecture And Security",
+    "header": "Multi-Tenant Data Isolation",
+    "text": "Module: Architecture And Security | Topic: Multi-Tenant Data Isolation\nEvery transport company registered on FleetFlow operates inside its own private workspace:\n1. **Server-Enforced Scope:** The active company ID (`companyId`) is resolved exclusively from the verified JWT bearer token payload or session context (`req.user.companyId`).\n2. **Tamper Prevention:** Incoming requests cannot override or specify an arbitrary `companyId` in URL query parameters or request bodies.\n3. **Database-Level Scoping:** All Mongoose queries touching company-owned documents automatically filter with `{ companyId: req.companyId }`.\n4. **Cross-Tenant Barrier:** Company A can never view, mutate, or query Company B's vehicles, drivers, shipments, trips, customers, invoices, fuel logs, or maintenance records. Cross-tenant access attempts return HTTP 404 (Not Found).",
+    "length": 854
+  },
+  {
+    "id": "01_architecture_and_security.md#3",
+    "source": "01_architecture_and_security.md",
+    "topic": "Architecture And Security",
+    "header": "Supported User Roles & Permissions (RBAC)",
+    "text": "Module: Architecture And Security | Topic: Supported User Roles & Permissions (RBAC)\nFleetFlow enforces 9 discrete user roles:\n1. **`SUPER_ADMIN`**: Platform-level administrator. Monitors cross-tenant health, manages subscription plans, reviews system audit logs, publishes platform announcements, and oversees carrier support tickets. Does not belong to an individual company workspace.\n2. **`COMPANY_OWNER`**: Highest authority within a company workspace. Can edit company profile, manage subscription plans, purchase upgrades, invite and manage team members, assign user roles, and access all operational and financial modules.\n3. **`MANAGER`**: Operational supervisor. Can edit company profile, manage non-owner users, oversee dispatch, create shipments, schedule trips, and review financial reports.\n4. **`DISPATCHER`**: Operations coordinator. Focuses on shipment booking, assigning vehicles and drivers to trips, monitoring active shipments in transit, and recording trip lifecycle milestones.\n5. **`ACCOUNTANT`**: Financial officer. Manages invoices, records customer payments, tracks operational expenses and fuel logs, and generates financial summaries.\n6. **`FLEET_MANAGER`**: Fleet custodian. Manages vehicle inventory, tracks vehicle registration and insurance expiry, schedules maintenance, and monitors fleet telemetry.\n7. **`MAINTENANCE_MANAGER`**: Workshop supervisor. Creates maintenance work orders, logs repairs and inspections, records parts and labor costs, and returns serviced vehicles to Active status.\n8. **`DRIVER`**: Operational crew member. Views assigned vehicle, assigned trips, pickup and delivery instructions, and provides delivery confirmation details.\n9. **`VIEWER`**: Read-only auditor. Can review company data, trips, and reports without write or delete permissions.",
+    "length": 1804
+  },
+  {
+    "id": "01_architecture_and_security.md#4",
+    "source": "01_architecture_and_security.md",
+    "topic": "Architecture And Security",
+    "header": "Authentication & Session Security",
+    "text": "Module: Architecture And Security | Topic: Authentication & Session Security\n- Passwords are encrypted using `bcryptjs` with 10 salt rounds. Plaintext passwords are never stored or logged.\n- Sessions use stateless JSON Web Tokens (JWT) signed with HMAC-SHA256 (`JWT_SECRET`). Tokens contain `userId`, `email`, `role`, and `companyId`.\n- Login rate-limiting protects against brute-force attacks on `/api/auth/login`.\n- If an account is suspended or set to `INACTIVE`, all subsequent API calls are immediately rejected with HTTP 401 or 403.\n- Password reset uses expiring cryptographically random reset tokens with a 1-hour validity window.",
+    "length": 638
+  },
+  {
+    "id": "02_fleet_and_vehicles.md#0",
+    "source": "02_fleet_and_vehicles.md",
+    "topic": "Fleet And Vehicles",
+    "header": "Fleet and Vehicle Management",
+    "text": "Module: Fleet And Vehicles | Topic: Fleet and Vehicle Management\n# Fleet and Vehicle Management\n",
+    "length": 96
+  },
+  {
+    "id": "02_fleet_and_vehicles.md#1",
+    "source": "02_fleet_and_vehicles.md",
+    "topic": "Fleet And Vehicles",
+    "header": "Vehicle Inventory",
+    "text": "Module: Fleet And Vehicles | Topic: Vehicle Inventory\nFleetFlow enables fleet operators to register, monitor, and manage transport vehicles with real-time operational status and compliance tracking.",
+    "length": 198
+  },
+  {
+    "id": "02_fleet_and_vehicles.md#2",
+    "source": "02_fleet_and_vehicles.md",
+    "topic": "Fleet And Vehicles",
+    "header": "Supported Vehicle Types",
+    "text": "Module: Fleet And Vehicles | Topic: Supported Vehicle Types\nFleetFlow supports 6 vehicle classifications:\n- `TRUCK`: Medium to heavy commercial goods carriers.\n- `TRAILER`: Multi-axle articulated freight trailers.\n- `VAN`: Light commercial vehicles for intra-city distribution and parcel delivery.\n- `TANKER`: Specialized liquid/gas bulk carriers.\n- `CONTAINER`: Intermodal standardized container carriers.\n- `OTHER`: Customized or specialty transport equipment.",
+    "length": 462
+  },
+  {
+    "id": "02_fleet_and_vehicles.md#3",
+    "source": "02_fleet_and_vehicles.md",
+    "topic": "Fleet And Vehicles",
+    "header": "Supported Fuel Types",
+    "text": "Module: Fleet And Vehicles | Topic: Supported Fuel Types\n- `DIESEL`: Standard commercial transport fuel.\n- `PETROL`: Gasoline for light utility vehicles.\n- `CNG`: Compressed Natural Gas for urban eco-distribution.\n- `ELECTRIC`: Battery Electric Vehicles (EV) with zero tailpipe emissions.\n- `HYBRID`: Dual fuel / hybrid powertrains.\n- `LNG`: Liquefied Natural Gas for long-haul heavy haulage.",
+    "length": 392
+  },
+  {
+    "id": "02_fleet_and_vehicles.md#4",
+    "source": "02_fleet_and_vehicles.md",
+    "topic": "Fleet And Vehicles",
+    "header": "Operational Vehicle Statuses",
+    "text": "Module: Fleet And Vehicles | Topic: Operational Vehicle Statuses\nVehicles transition between 3 primary statuses:\n1. `ACTIVE`: Vehicle is available for trip scheduling, dispatch, or currently on active road missions.\n2. `IN_MAINTENANCE`: Vehicle is currently undergoing scheduled servicing or mechanical repair. **Important:** The system automatically blocks vehicles in this status from new trip dispatches to prevent dispatching unroadworthy units.\n3. `INACTIVE`: Decommissioned or temporarily sidelined vehicles.",
+    "length": 514
+  },
+  {
+    "id": "02_fleet_and_vehicles.md#5",
+    "source": "02_fleet_and_vehicles.md",
+    "topic": "Fleet And Vehicles",
+    "header": "Vehicle Registration Rules & Constraints",
+    "text": "Module: Fleet And Vehicles | Topic: Vehicle Registration Rules & Constraints\n- `registrationNumber`: Must be unique per company. Trimmed and converted to uppercase automatically (e.g., `MH12AB1234`).\n- `year`: Must be between 1980 and current year + 2.\n- `currentOdometer`: Non-negative numeric value in kilometers. Automatically updated when trips are completed.\n- `assignedDriverId`: Bidirectional link between vehicle and driver. Assigning a driver to a vehicle automatically synchronizes the driver's profile with this vehicle.\n- Document compliance tracking:\n  - `insuranceExpiryDate`: Policy validity date.\n  - `registrationExpiryDate`: State road transport permit expiry.\n  - `pollutionExpiryDate`: PUC (Pollution Under Control) certificate expiry.\n- Plan limits: Adding a vehicle checks the company's active subscription plan (`maxVehicles`). If the vehicle limit is exceeded, the server returns HTTP 403 with plan upgrade instructions.",
+    "length": 944
+  },
+  {
+    "id": "03_drivers_and_compliance.md#0",
+    "source": "03_drivers_and_compliance.md",
+    "topic": "Drivers And Compliance",
+    "header": "Driver Management and Compliance",
+    "text": "Module: Drivers And Compliance | Topic: Driver Management and Compliance\n# Driver Management and Compliance\n",
+    "length": 108
+  },
+  {
+    "id": "03_drivers_and_compliance.md#1",
+    "source": "03_drivers_and_compliance.md",
+    "topic": "Drivers And Compliance",
+    "header": "Driver Profiles",
+    "text": "Module: Drivers And Compliance | Topic: Driver Profiles\nFleetFlow tracks transport drivers with compliance data, contact records, emergency contacts, and vehicle assignments.",
+    "length": 174
+  },
+  {
+    "id": "03_drivers_and_compliance.md#2",
+    "source": "03_drivers_and_compliance.md",
+    "topic": "Drivers And Compliance",
+    "header": "Driver Statuses",
+    "text": "Module: Drivers And Compliance | Topic: Driver Statuses\n- `ACTIVE`: Available for dispatch or currently operating assigned trips.\n- `INACTIVE`: Inactive or former employee. Cannot be assigned to new trips.\n- `ON_LEAVE`: Driver is currently on approved leave. Cannot be assigned to new trips.",
+    "length": 291
+  },
+  {
+    "id": "03_drivers_and_compliance.md#3",
+    "source": "03_drivers_and_compliance.md",
+    "topic": "Drivers And Compliance",
+    "header": "Compliance Fields & Validation",
+    "text": "Module: Drivers And Compliance | Topic: Compliance Fields & Validation\n- `licenseNumber`: Heavy Motor Vehicle (HMV) or commercial transport driving license number. Unique per driver profile.\n- `licenseCategory`: Commercial license endorsement (default: `HMV / Heavy Transport`).\n- `licenseExpiryDate`: Mandatory expiration date. The platform alerts operators prior to license expiration to avoid regulatory penalties and impoundments.\n- `phone`: Primary mobile contact for dispatch and emergency notifications.\n- `emergencyContact`: Name, phone, and relationship for safety assurance.",
+    "length": 584
+  },
+  {
+    "id": "03_drivers_and_compliance.md#4",
+    "source": "03_drivers_and_compliance.md",
+    "topic": "Drivers And Compliance",
+    "header": "Bidirectional Vehicle Assignment Logic",
+    "text": "Module: Drivers And Compliance | Topic: Bidirectional Vehicle Assignment Logic\n- When a driver is assigned to a vehicle, the vehicle's `assignedDriverId` field is automatically updated.\n- If the driver was previously assigned to a different vehicle, that older vehicle is automatically unlinked (`assignedDriverId = null`).\n- If another driver was previously assigned to the target vehicle, that driver's vehicle link is cleaned up automatically to prevent double-assignment conflicts.",
+    "length": 485
+  },
+  {
+    "id": "04_customers_and_directory.md#0",
+    "source": "04_customers_and_directory.md",
+    "topic": "Customers And Directory",
+    "header": "Customer Directory and Directory Management",
+    "text": "Module: Customers And Directory | Topic: Customer Directory and Directory Management\n# Customer Directory and Directory Management\n",
+    "length": 131
+  },
+  {
+    "id": "04_customers_and_directory.md#1",
+    "source": "04_customers_and_directory.md",
+    "topic": "Customers And Directory",
+    "header": "Customer Management",
+    "text": "Module: Customers And Directory | Topic: Customer Management\nFleetFlow maintains an address book and commercial profile for every client entity (shippers, consignors, freight forwarders, and retail clients).",
+    "length": 207
+  },
+  {
+    "id": "04_customers_and_directory.md#2",
+    "source": "04_customers_and_directory.md",
+    "topic": "Customers And Directory",
+    "header": "Customer Classifications",
+    "text": "Module: Customers And Directory | Topic: Customer Classifications\n- `CORPORATE`: Contractual enterprise shippers with ongoing high-volume accounts and negotiated payment terms.\n- `FORWARDER`: Third-party freight forwarders and logistics aggregators.\n- `RETAIL`: Occasional or walk-in transport clients.\n- `INDIVIDUAL`: Personal consignment shippers.",
+    "length": 349
+  },
+  {
+    "id": "04_customers_and_directory.md#3",
+    "source": "04_customers_and_directory.md",
+    "topic": "Customers And Directory",
+    "header": "Key Customer Fields",
+    "text": "Module: Customers And Directory | Topic: Key Customer Fields\n- `name`: Legal business or individual name.\n- `contactPerson`: Primary logistics contact or dispatch manager.\n- `phone` and `email`: Communication channels for consignment notifications and invoice dispatch.\n- `taxId`: GSTIN (Goods and Services Tax Identification Number in India) or Corporate Tax ID for invoicing compliance.\n- `billingAddress` and `shippingAddress`: Structured addresses including street, city, state, postal code, and country.\n- `paymentTerms`: Commercial payment agreement (e.g., Net 15, Net 30, Cash on Delivery).\n- `status`: `ACTIVE` or `INACTIVE`. Only active customers can be selected when creating new shipments.",
+    "length": 700
+  },
+  {
+    "id": "05_shipments_and_cargo.md#0",
+    "source": "05_shipments_and_cargo.md",
+    "topic": "Shipments And Cargo",
+    "header": "Shipment Booking and Cargo Management",
+    "text": "Module: Shipments And Cargo | Topic: Shipment Booking and Cargo Management\n# Shipment Booking and Cargo Management\n",
+    "length": 115
+  },
+  {
+    "id": "05_shipments_and_cargo.md#1",
+    "source": "05_shipments_and_cargo.md",
+    "topic": "Shipments And Cargo",
+    "header": "Freight Shipment Overview",
+    "text": "Module: Shipments And Cargo | Topic: Freight Shipment Overview\nShipments represent individual customer cargo orders requiring transport between pickup origin and destination addresses.",
+    "length": 184
+  },
+  {
+    "id": "05_shipments_and_cargo.md#2",
+    "source": "05_shipments_and_cargo.md",
+    "topic": "Shipments And Cargo",
+    "header": "Cargo Classifications",
+    "text": "Module: Shipments And Cargo | Topic: Cargo Classifications\n- `GENERAL`: Standard palletized or packaged freight.\n- `FRAGILE`: High-care goods requiring shock-free handling.\n- `PERISHABLE`: Temperature-sensitive consumables, produce, or pharmaceuticals.\n- `HAZARDOUS`: Regulated dangerous goods (flammables, chemicals) requiring safety placards.\n- `LIQUID`: Bulk liquid tanker cargo.\n- `HEAVY_MACHINERY`: Oversized industrial equipment or break-bulk cargo.\n- `PARCEL`: Small parcels, express courier packages, or e-commerce cartons.\n- `OTHER`: Uncategorized specialized freight.",
+    "length": 577
+  },
+  {
+    "id": "05_shipments_and_cargo.md#3",
+    "source": "05_shipments_and_cargo.md",
+    "topic": "Shipments And Cargo",
+    "header": "Shipment Priority Levels",
+    "text": "Module: Shipments And Cargo | Topic: Shipment Priority Levels\n- `STANDARD`: Normal operational transit schedule.\n- `HIGH`: Prioritized dispatch with expedited loading.\n- `URGENT`: Critical priority dispatch with direct, non-stop routing.",
+    "length": 237
+  },
+  {
+    "id": "05_shipments_and_cargo.md#4",
+    "source": "05_shipments_and_cargo.md",
+    "topic": "Shipments And Cargo",
+    "header": "Shipment Lifecycle States",
+    "text": "Module: Shipments And Cargo | Topic: Shipment Lifecycle States\nA shipment progresses through the following sequential states:\n1. `PENDING`: Newly created shipment awaiting trip assignment or resource allocation.\n2. `ASSIGNED`: Linked to a scheduled trip with assigned vehicle and driver.\n3. `PICKED_UP`: Cargo loaded at origin and dispatch departed.\n4. `IN_TRANSIT`: Freight is on the road toward destination.\n5. `DELIVERED`: Successfully arrived at consignee destination with delivery confirmation / POD recorded.\n6. `CANCELLED`: Shipment aborted prior to transit.",
+    "length": 565
+  },
+  {
+    "id": "05_shipments_and_cargo.md#5",
+    "source": "05_shipments_and_cargo.md",
+    "topic": "Shipments And Cargo",
+    "header": "Shipment Pricing Fields",
+    "text": "Module: Shipments And Cargo | Topic: Shipment Pricing Fields\n- `estimatedCost`: Internal operating cost estimated using route distance and vehicle overhead (or via the AI Trip Cost Predictor).\n- `agreedPrice`: Contractual freight rate billed to the customer.\n- Revenue Margin = `agreedPrice - estimatedCost`.\n- Monthly quota: Shipment creation respects `maxShipmentsPerMonth` defined by the company's active subscription tier.",
+    "length": 426
+  },
+  {
+    "id": "06_trips_and_dispatch.md#0",
+    "source": "06_trips_and_dispatch.md",
+    "topic": "Trips And Dispatch",
+    "header": "Trip Dispatching, Scheduling and Tracking",
+    "text": "Module: Trips And Dispatch | Topic: Trip Dispatching, Scheduling and Tracking\n# Trip Dispatching, Scheduling and Tracking\n",
+    "length": 122
+  },
+  {
+    "id": "06_trips_and_dispatch.md#1",
+    "source": "06_trips_and_dispatch.md",
+    "topic": "Trips And Dispatch",
+    "header": "Trip Concept",
+    "text": "Module: Trips And Dispatch | Topic: Trip Concept\nA Trip represents the actual physical road mission executed by a vehicle and driver. A single trip can carry one or multiple freight shipments between origin and destination with intermediate route waypoints.",
+    "length": 257
+  },
+  {
+    "id": "06_trips_and_dispatch.md#2",
+    "source": "06_trips_and_dispatch.md",
+    "topic": "Trips And Dispatch",
+    "header": "Trip Lifecycle State Machine",
+    "text": "Module: Trips And Dispatch | Topic: Trip Lifecycle State Machine\nA trip transitions through defined operational statuses:\n1. `DRAFT`: Preliminary route draft, stops being compiled.\n2. `PLANNED`: Routing finalized, departure and arrival windows scheduled.\n3. `ASSIGNED`: Vehicle and driver assigned to the trip. Associated shipments transition to `ASSIGNED`.\n4. `IN_PROGRESS`: Trip started by operator or driver (`POST /api/trips/:id/start`). Start odometer recorded. Associated shipments transition to `IN_TRANSIT`.\n5. `COMPLETED`: Trip concluded at final destination (`POST /api/trips/:id/complete`). End odometer and actual expenses recorded. Associated shipments transition to `DELIVERED`.\n6. `CANCELLED`: Trip aborted. Releases assigned vehicle and driver back to available status.",
+    "length": 785
+  },
+  {
+    "id": "06_trips_and_dispatch.md#3",
+    "source": "06_trips_and_dispatch.md",
+    "topic": "Trips And Dispatch",
+    "header": "Concurrency-Safe Dispatch Protection",
+    "text": "Module: Trips And Dispatch | Topic: Concurrency-Safe Dispatch Protection\nTo prevent double-booking:\n- When a trip is scheduled or dispatched, FleetFlow executes atomic checks on both `vehicleId` and `driverId`.\n- If a vehicle or driver is already assigned to another `IN_PROGRESS` or active `ASSIGNED` trip, the request is rejected with HTTP 400: *\"Vehicle/Driver is already assigned to an active trip\"*.\n- If a vehicle is in `IN_MAINTENANCE` status, dispatch is blocked with HTTP 400: *\"Cannot dispatch vehicle currently in maintenance\"*.",
+    "length": 539
+  },
+  {
+    "id": "06_trips_and_dispatch.md#4",
+    "source": "06_trips_and_dispatch.md",
+    "topic": "Trips And Dispatch",
+    "header": "Odometer Synchronization & Actual Mileage",
+    "text": "Module: Trips And Dispatch | Topic: Odometer Synchronization & Actual Mileage\n- When a trip completes, `endOdometer - startOdometer` is computed as `actualDistanceKm`.\n- The assigned vehicle's `currentOdometer` is automatically updated to `endOdometer`.\n- This ensures maintenance intervals (such as 10,000 km oil service alerts) remain strictly synchronized with actual road wear.",
+    "length": 381
+  },
+  {
+    "id": "07_proof_of_delivery.md#0",
+    "source": "07_proof_of_delivery.md",
+    "topic": "Proof Of Delivery",
+    "header": "Proof of Delivery (POD) and Delivery Confirmation",
+    "text": "Module: Proof Of Delivery | Topic: Proof of Delivery (POD) and Delivery Confirmation\n# Proof of Delivery (POD) and Delivery Confirmation\n",
+    "length": 137
+  },
+  {
+    "id": "07_proof_of_delivery.md#1",
+    "source": "07_proof_of_delivery.md",
+    "topic": "Proof Of Delivery",
+    "header": "Proof of Delivery (POD) Overview",
+    "text": "Module: Proof Of Delivery | Topic: Proof of Delivery (POD) Overview\nProof of Delivery verifies that cargo has been handed over to the authorized consignee in acceptable condition, concluding freight liability and triggering invoice eligibility.",
+    "length": 244
+  },
+  {
+    "id": "07_proof_of_delivery.md#2",
+    "source": "07_proof_of_delivery.md",
+    "topic": "Proof Of Delivery",
+    "header": "POD Data Points",
+    "text": "Module: Proof Of Delivery | Topic: POD Data Points\nWhen completing a trip or updating shipment status to `DELIVERED`, FleetFlow captures:\n- `deliveredAt`: Precise timestamp of physical delivery.\n- `recipientName`: Name of consignee or dock receiving manager.\n- `recipientPhone`: Contact number of receiving signatory.\n- `notes`: Delivery comments, dock number, or package seal condition.\n- `podNumber`: Unique paper or electronic delivery acknowledgement number (also known in Indian logistics as the signed *bilty* / *pauti* receipt number).",
+    "length": 542
+  },
+  {
+    "id": "07_proof_of_delivery.md#3",
+    "source": "07_proof_of_delivery.md",
+    "topic": "Proof Of Delivery",
+    "header": "Operational Workflow",
+    "text": "Module: Proof Of Delivery | Topic: Operational Workflow\n1. Driver or dispatcher navigates to **Trips** or **Shipments** page.\n2. Selects the active trip or in-transit shipment.\n3. Enters delivery confirmation details and end odometer reading.\n4. System automatically transitions shipment status to `DELIVERED`.\n5. An invoice can now be generated directly from the completed shipment or trip.",
+    "length": 391
+  },
+  {
+    "id": "08_fuel_and_maintenance.md#0",
+    "source": "08_fuel_and_maintenance.md",
+    "topic": "Fuel And Maintenance",
+    "header": "Fuel Management and Vehicle Maintenance",
+    "text": "Module: Fuel And Maintenance | Topic: Fuel Management and Vehicle Maintenance\n# Fuel Management and Vehicle Maintenance\n",
+    "length": 120
+  },
+  {
+    "id": "08_fuel_and_maintenance.md#1",
+    "source": "08_fuel_and_maintenance.md",
+    "topic": "Fuel And Maintenance",
+    "header": "Fuel Logging and Telemetry",
+    "text": "Module: Fuel And Maintenance | Topic: Fuel Logging and Telemetry\nFuel represents the largest variable operating expense in road freight transport. FleetFlow tracks refueling events per vehicle and driver:\n- `vehicleId`: Target vehicle filled.\n- `refuelingDate`: Date and time of fuel purchase.\n- `quantity`: Fuel volume dispensed in Liters.\n- `pricePerUnit`: Cost per Liter in INR (or configured currency).\n- `totalCost`: Automatically validated as `quantity * pricePerUnit`.\n- `odometer`: Current odometer reading at the fuel pump. Allows computing mileage (km per liter) between consecutive fill-ups.\n- `fuelStation`: Pump name, highway location, or Fastag fuel point.\n- `invoiceNumber`: Vendor fuel receipt number.",
+    "length": 717
+  },
+  {
+    "id": "08_fuel_and_maintenance.md#2",
+    "source": "08_fuel_and_maintenance.md",
+    "topic": "Fuel And Maintenance",
+    "header": "Maintenance Management",
+    "text": "Module: Fuel And Maintenance | Topic: Maintenance Management\nFleetFlow tracks vehicle service work orders to maximize fleet uptime and prevent costly roadside breakdowns.\n\n### Service Types\n- `ROUTINE_SERVICE`: Scheduled preventative maintenance.\n- `REPAIR`: Corrective mechanical or electrical repair.\n- `INSPECTION`: Periodic roadworthiness or fitness certificate inspection.\n- `TIRE_REPLACEMENT`: Tire rotation, retreading, or new tire installation.\n- `OIL_CHANGE`: Engine oil and filter renewal.\n- `BRAKE_SERVICE`: Brake pad/drum inspection and replacement.\n- `ACCIDENT_REPAIR`: Body and structural collision damage repairs.\n- `OTHER`: Auxiliary servicing.\n\n### Maintenance Workflow and Vehicle Locking\n1. Maintenance record created with status `SCHEDULED` or `IN_PROGRESS`.\n2. Target vehicle's status is automatically set to `IN_MAINTENANCE`.\n3. Vehicle is immediately locked from new trip dispatches to prevent unsafe dispatch.\n4. Workshop logs `partsCost`, `laborCost`, and `totalCost`.\n5. Upon marking the work order as `COMPLETED`, the vehicle status is automatically reverted to `ACTIVE`, immediately re-enabling it for dispatch.",
+    "length": 1139
+  },
+  {
+    "id": "09_ai_cost_predictor_and_telemetry.md#0",
+    "source": "09_ai_cost_predictor_and_telemetry.md",
+    "topic": "Ai Cost Predictor And Telemetry",
+    "header": "AI Trip Cost Predictor and Machine Learning Intelligence",
+    "text": "Module: Ai Cost Predictor And Telemetry | Topic: AI Trip Cost Predictor and Machine Learning Intelligence\n# AI Trip Cost Predictor and Machine Learning Intelligence\n",
+    "length": 165
+  },
+  {
+    "id": "09_ai_cost_predictor_and_telemetry.md#1",
+    "source": "09_ai_cost_predictor_and_telemetry.md",
+    "topic": "Ai Cost Predictor And Telemetry",
+    "header": "AI Architecture",
+    "text": "Module: Ai Cost Predictor And Telemetry | Topic: AI Architecture\nFleetFlow includes a dedicated Python FastAPI intelligence microservice running on port 8000 (`/predict/trip-cost`, `/insights/fuel`, `/insights/maintenance`, `/recommendations`).",
+    "length": 244
+  },
+  {
+    "id": "09_ai_cost_predictor_and_telemetry.md#2",
+    "source": "09_ai_cost_predictor_and_telemetry.md",
+    "topic": "Ai Cost Predictor And Telemetry",
+    "header": "Trip Cost Predictor (`POST /api/ai/predict/trip-cost`)",
+    "text": "Module: Ai Cost Predictor And Telemetry | Topic: Trip Cost Predictor (`POST /api/ai/predict/trip-cost`)\nThe AI engine predicts route operating expenses and recommends quoting prices based on historical dispatch telemetry and physics drag modeling.\n\n### Required Input Parameters\n- `distance_km`: Trip distance in kilometers (must be strictly greater than 0).\n- `cargo_weight_kg`: Payload cargo weight in kilograms (must be non-negative).\n- `vehicle_type`: `TRUCK`, `TRAILER`, `VAN`, `TANKER`, `CONTAINER` (default: `TRUCK`).\n- `fuel_type`: `DIESEL`, `PETROL`, `CNG`, `ELECTRIC` (default: `DIESEL`).\n- `fuel_price_per_liter`: Current fuel price in INR (default: 92.50).\n\n### Output Breakdown\n- `predicted_cost`: Total estimated journey expense in INR (minimum floor 500 INR).\n- `cost_breakdown`:\n  - `fuel_cost`: Fuel consumed based on vehicle tare weight drag and cargo mass.\n  - `toll_charges`: Highway toll plaza fees based on axle count and distance.\n  - `driver_allowance`: Driver batta (base allowance + per-km wage).\n  - `maintenance_reserves`: Wear-and-tear tire and brake depreciation reserve.\n- `cost_per_km`: Average cost per kilometer.\n- `confidence_interval`: Lower and upper bounds computed with root mean square error (RMSE).\n- `explainability`: Natural language breakdown explaining how weight, vehicle aerodynamics, and distance contributed to the prediction.",
+    "length": 1375
+  },
+  {
+    "id": "09_ai_cost_predictor_and_telemetry.md#3",
+    "source": "09_ai_cost_predictor_and_telemetry.md",
+    "topic": "Ai Cost Predictor And Telemetry",
+    "header": "High-Availability Telemetry & Failover Fallback",
+    "text": "Module: Ai Cost Predictor And Telemetry | Topic: High-Availability Telemetry & Failover Fallback\n- If the Python microservice is temporarily unreachable, the Node.js backend seamlessly falls back to an embedded deterministic physics formula.\n- The user experience is uninterrupted, and the request duration and fallback usage are recorded in the `AITelemetry` collection for administrative auditing.",
+    "length": 399
+  },
+  {
+    "id": "10_invoicing_and_payments.md#0",
+    "source": "10_invoicing_and_payments.md",
+    "topic": "Invoicing And Payments",
+    "header": "Invoicing, Billing and Payment Collection",
+    "text": "Module: Invoicing And Payments | Topic: Invoicing, Billing and Payment Collection\n# Invoicing, Billing and Payment Collection\n",
+    "length": 126
+  },
+  {
+    "id": "10_invoicing_and_payments.md#1",
+    "source": "10_invoicing_and_payments.md",
+    "topic": "Invoicing And Payments",
+    "header": "Invoicing Module Overview",
+    "text": "Module: Invoicing And Payments | Topic: Invoicing Module Overview\nFleetFlow allows transport companies to generate formal commercial invoices for shippers and customers based on completed shipments or contract terms.",
+    "length": 216
+  },
+  {
+    "id": "10_invoicing_and_payments.md#2",
+    "source": "10_invoicing_and_payments.md",
+    "topic": "Invoicing And Payments",
+    "header": "Invoice Structure",
+    "text": "Module: Invoicing And Payments | Topic: Invoice Structure\n- `invoiceNumber`: Unique alphanumeric identifier (e.g., `INV-2026-001`).\n- `customerId`: Bill-to customer entity.\n- `tripId` / `shipmentId`: Optional linkages linking invoice directly to underlying operational trips.\n- `items`: Itemized line items containing description, quantity, unit price, and subtotal.\n- `taxRate` and `taxAmount`: Applied tax (such as 5% or 18% GST).\n- `totalAmount`: `subtotal + taxAmount`.\n- `paidAmount`: Cumulative payments received.\n- `status`:\n  - `DRAFT`: Preliminary draft before issuance.\n  - `ISSUED`: Finalized invoice transmitted to customer.\n  - `PARTIALLY_PAID`: Customer made partial milestone payment.\n  - `PAID`: Balance completely settled (`paidAmount == totalAmount`).\n  - `OVERDUE`: Due date passed without full payment.\n  - `CANCELLED`: Voided invoice.",
+    "length": 855
+  },
+  {
+    "id": "10_invoicing_and_payments.md#3",
+    "source": "10_invoicing_and_payments.md",
+    "topic": "Invoicing And Payments",
+    "header": "Payment Recording Rules & Protections",
+    "text": "Module: Invoicing And Payments | Topic: Payment Recording Rules & Protections\n- Recording a payment (`POST /api/invoices/:id/payments`):\n  - Requires `amount`, `paymentDate`, `paymentMethod` (`BANK_TRANSFER`, `CHEQUE`, `CASH`, `UPI`, `CREDIT_CARD`), and optional `transactionReference`.\n- **Overpayment Protection:** If a recorded payment exceeds the remaining outstanding balance (`totalAmount - paidAmount`), the server rejects it with HTTP 400: *\"Payment exceeds remaining balance\"*.\n- **Double Payment Guard:** Rejects payments on already settled `PAID` invoices.",
+    "length": 567
+  },
+  {
+    "id": "11_reports_and_analytics.md#0",
+    "source": "11_reports_and_analytics.md",
+    "topic": "Reports And Analytics",
+    "header": "Reports, Analytics and Data Exports",
+    "text": "Module: Reports And Analytics | Topic: Reports, Analytics and Data Exports\n# Reports, Analytics and Data Exports\n",
+    "length": 113
+  },
+  {
+    "id": "11_reports_and_analytics.md#1",
+    "source": "11_reports_and_analytics.md",
+    "topic": "Reports And Analytics",
+    "header": "Operational and Financial Summary (`GET /api/reports/summary`)",
+    "text": "Module: Reports And Analytics | Topic: Operational and Financial Summary (`GET /api/reports/summary`)\nFleetFlow calculates real-time operational and financial health metrics per company:\n- `totalShipments`: Count of all booked freight orders.\n- `deliveredShipments`: Count of successfully completed consignments.\n- `totalTrips`: Aggregate dispatch missions.\n- `completedTrips`: Fully concluded trips.\n- `revenue`: Sum of `agreedPrice` across delivered shipments.\n- `operationalCost`: Sum of fuel, maintenance, driver batta, and toll expenses across completed trips.\n- `grossProfit`: `revenue - operationalCost`.\n- `marginPercent`: `(grossProfit / revenue) * 100`.",
+    "length": 663
+  },
+  {
+    "id": "11_reports_and_analytics.md#2",
+    "source": "11_reports_and_analytics.md",
+    "topic": "Reports And Analytics",
+    "header": "CSV Data Exports",
+    "text": "Module: Reports And Analytics | Topic: CSV Data Exports\nFleetFlow provides direct CSV export endpoints for external spreadsheet analysis, tax filing, and auditing:\n- `GET /api/reports/export/shipments`: Exports shipment records including dates, customer, weight, agreed price, and status.\n- `GET /api/reports/export/trips`: Exports trip records including start/end odometers, distance, vehicle, driver, and cost breakdown.",
+    "length": 422
+  },
+  {
+    "id": "12_subscriptions_and_plans.md#0",
+    "source": "12_subscriptions_and_plans.md",
+    "topic": "Subscriptions And Plans",
+    "header": "Subscription Plans and Capacity Restrictions",
+    "text": "Module: Subscriptions And Plans | Topic: Subscription Plans and Capacity Restrictions\n# Subscription Plans and Capacity Restrictions\n",
+    "length": 133
+  },
+  {
+    "id": "12_subscriptions_and_plans.md#1",
+    "source": "12_subscriptions_and_plans.md",
+    "topic": "Subscriptions And Plans",
+    "header": "Subscription Tiers",
+    "text": "Module: Subscriptions And Plans | Topic: Subscription Tiers\nFleetFlow is a subscription-based multi-tenant platform with 4 tiered service plans:\n1. `FREE` / `TRIAL`:\n   - 14-day free trial assigned upon new company registration.\n   - Max Vehicles: 5\n   - Max Users: 3\n   - Max Shipments Per Month: 50\n2. `STARTER`:\n   - Small fleet operators.\n   - Price: $49/month or $490/year.\n   - Max Vehicles: 10\n   - Max Users: 5\n   - Max Shipments Per Month: 150\n3. `PROFESSIONAL`:\n   - Growing transport businesses.\n   - Price: $149/month or $1,490/year.\n   - Max Vehicles: 30\n   - Max Users: 15\n   - Max Shipments Per Month: 600\n4. `ENTERPRISE`:\n   - Large logistics carriers and 3PL enterprises.\n   - Price: $399/month or $3,990/year.\n   - Max Vehicles: Unlimited (or 500)\n   - Max Users: Unlimited (or 100)\n   - Max Shipments Per Month: Unlimited (or 10,000)",
+    "length": 852
+  },
+  {
+    "id": "12_subscriptions_and_plans.md#2",
+    "source": "12_subscriptions_and_plans.md",
+    "topic": "Subscriptions And Plans",
+    "header": "Plan Restriction Enforcement",
+    "text": "Module: Subscriptions And Plans | Topic: Plan Restriction Enforcement\n- When a company attempts to create a new vehicle, user, or shipment, the backend checks current count against the active plan limits.\n- If the limit has been reached, creation is blocked with HTTP 403: *\"Plan limit reached. Please upgrade your subscription.\"*\n- Company Owners can navigate to **Company Settings > Subscription** (`/company/subscription`) to view usage meters, compare plans, and upgrade or toggle auto-renew.",
+    "length": 496
+  },
+  {
+    "id": "13_support_tickets_and_escalation.md#0",
+    "source": "13_support_tickets_and_escalation.md",
+    "topic": "Support Tickets And Escalation",
+    "header": "Support Tickets, Incident Reporting and Human Escalation",
+    "text": "Module: Support Tickets And Escalation | Topic: Support Tickets, Incident Reporting and Human Escalation\n# Support Tickets, Incident Reporting and Human Escalation\n",
+    "length": 164
+  },
+  {
+    "id": "13_support_tickets_and_escalation.md#1",
+    "source": "13_support_tickets_and_escalation.md",
+    "topic": "Support Tickets And Escalation",
+    "header": "Support Ticketing Module",
+    "text": "Module: Support Tickets And Escalation | Topic: Support Ticketing Module\nWhen an operational, billing, or technical issue cannot be resolved through automated self-service, FleetFlow features an integrated support ticket escalation system.",
+    "length": 239
+  },
+  {
+    "id": "13_support_tickets_and_escalation.md#2",
+    "source": "13_support_tickets_and_escalation.md",
+    "topic": "Support Tickets And Escalation",
+    "header": "Ticket Schema & Properties",
+    "text": "Module: Support Tickets And Escalation | Topic: Ticket Schema & Properties\n- `ticketNumber`: Auto-generated unique tracking ID formatted as `TICK-<timestamp_suffix>-<random_code>` (e.g., `TICK-42100-3841`).\n- `subject`: Short summary of the inquiry (maximum 200 characters).\n- `description`: Detailed statement of the issue or incident.\n- `priority`:\n  - `LOW`: General inquiries or non-critical configuration questions.\n  - `MEDIUM`: Standard operational assistance.\n  - `HIGH`: Degraded functionality impacting daily operations.\n  - `URGENT`: Blocker preventing vehicle dispatch, invoicing, or fleet tracking.\n- `status`:\n  - `OPEN`: Newly filed ticket awaiting operator response.\n  - `IN_PROGRESS`: Assigned support engineer or Super Admin is actively investigating.\n  - `RESOLVED`: Solution provided to carrier.\n  - `CLOSED`: Inquiry finalized and closed. If a user posts a new reply to a `RESOLVED` ticket, the ticket status automatically re-opens to `OPEN`.\n- `category`:\n  - `BILLING`: Subscription, invoice, or payment disputes.\n  - `TECHNICAL`: System bugs, API errors, or integration problems.\n  - `FEATURE_REQUEST`: Feedback and capability suggestions.\n  - `GENERAL`: Operational guidance and onboarding assistance.",
+    "length": 1226
+  },
+  {
+    "id": "13_support_tickets_and_escalation.md#3",
+    "source": "13_support_tickets_and_escalation.md",
+    "topic": "Support Tickets And Escalation",
+    "header": "Human Escalation Workflow",
+    "text": "Module: Support Tickets And Escalation | Topic: Human Escalation Workflow\n- Users can create tickets on the **Customer Support** page (`/support`) or directly escalate an ongoing conversation from the AI Chatbot assistant.\n- Super Admins review carrier tickets in the Super Admin Portal (`/admin/support`) and submit threaded replies that appear directly in the user's ticket thread.",
+    "length": 383
+  },
+  {
+    "id": "14_troubleshooting_and_faq.md#0",
+    "source": "14_troubleshooting_and_faq.md",
+    "topic": "Troubleshooting And Faq",
+    "header": "Troubleshooting Common Operational and Technical Issues",
+    "text": "Module: Troubleshooting And Faq | Topic: Troubleshooting Common Operational and Technical Issues\n# Troubleshooting Common Operational and Technical Issues\n",
+    "length": 155
+  },
+  {
+    "id": "14_troubleshooting_and_faq.md#1",
+    "source": "14_troubleshooting_and_faq.md",
+    "topic": "Troubleshooting And Faq",
+    "header": "Common Error Messages and Resolutions",
+    "text": "Module: Troubleshooting And Faq | Topic: Common Error Messages and Resolutions\n### 1. HTTP 400: \"Vehicle/Driver is already assigned to an active trip\"\n- **Cause:** Attempting to assign a vehicle or driver that is already linked to a trip currently in `ASSIGNED` or `IN_PROGRESS` status.\n- **Resolution:** Navigate to **Trips** (`/trips`), locate the active trip for that vehicle/driver, and either complete the trip or remove the assignment before dispatching a new journey.\n\n### 2. HTTP 400: \"Cannot dispatch vehicle currently in maintenance\"\n- **Cause:** The vehicle's status is `IN_MAINTENANCE` due to an active service or repair work order.\n- **Resolution:** Navigate to **Maintenance** (`/maintenance`), locate the open work order, verify with workshop personnel that repairs are finished, and mark the service status as `COMPLETED`. The vehicle status will automatically revert to `ACTIVE`.\n\n### 3. HTTP 400: \"Payment exceeds remaining balance\"\n- **Cause:** Attempting to record a payment amount greater than `invoice.totalAmount - invoice.paidAmount`.\n- **Resolution:** Verify the outstanding balance on the invoice details card and enter an amount less than or equal to the remaining balance.\n\n### 4. HTTP 403: \"Plan limit reached. Please upgrade your subscription\"\n- **Cause:** Reached maximum allowable vehicles, users, or monthly shipments for current tier (`FREE`: 5 vehicles, `STARTER`: 10, `PROFESSIONAL`: 30).\n- **Resolution:** Company Owner should go to **Company Settings > Subscription** (`/company/subscription`) and upgrade to a higher tier.\n\n### 5. HTTP 401 / 403: \"Invalid token\" or \"Session expired\"\n- **Cause:** JWT token has expired or user account status is `INACTIVE`.\n- **Resolution:** Re-authenticate at `/login`. If the issue persists, contact the company owner to verify your account status.\n\n### 6. HTTP 404: \"Resource not found\" when accessing valid record ID\n- **Cause:** Strict multi-tenant data isolation. The resource belongs to another company workspace or has been archived.\n- **Resolution:** Verify you are logged into the correct company account. You cannot access data belonging to another carrier.\n\n### 7. AI Trip Cost Estimator returning fallback values\n- **Cause:** Python AI service port 8000 unreachable or restarting.\n- **Resolution:** The system automatically switches to the built-in deterministic physics calculation without interrupting your quote workflow. Once the Python service resumes, model inference re-engages automatically.",
+    "length": 2484
+  }
+]
