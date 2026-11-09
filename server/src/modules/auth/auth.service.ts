@@ -97,12 +97,13 @@ export class AuthService {
         // non-blocking subscription creation
       }
 
-      // Generate tokens
+      // Generate tokens – include tokenVersion for revocation support
       const tokenPayload = {
         userId: user._id.toString(),
         email: user.email,
         role: user.role,
         companyId: company._id.toString(),
+        tokenVersion: user.tokenVersion ?? 0,
       };
       const accessToken = generateAccessToken(tokenPayload);
       const refreshToken = generateRefreshToken(tokenPayload);
@@ -178,6 +179,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       companyId: company ? company._id.toString() : null,
+      tokenVersion: user.tokenVersion ?? 0,
     };
 
     const accessToken = generateAccessToken(tokenPayload);
@@ -266,6 +268,8 @@ export class AuthService {
     }
 
     user.passwordHash = await bcrypt.hash(input.password, ENV.BCRYPT_SALT_ROUNDS);
+    // Increment tokenVersion to invalidate existing sessions
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
 
     record.used = true;

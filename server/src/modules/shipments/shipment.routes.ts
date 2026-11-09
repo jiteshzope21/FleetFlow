@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ShipmentController } from './shipment.controller.js';
+import { createQuotaMiddleware } from '../../middleware/quota.middleware.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 import { requireTenantContext } from '../../middleware/tenant.middleware.js';
 import { requireRole } from '../../middleware/role.middleware.js';
@@ -15,6 +16,7 @@ shipmentRouter.get('/:id', ShipmentController.getById);
 shipmentRouter.post(
   '/',
   requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'DISPATCHER'),
+  createQuotaMiddleware('shipments'),
   ShipmentController.create
 );
 

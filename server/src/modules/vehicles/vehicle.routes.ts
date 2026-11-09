@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { VehicleController } from './vehicle.controller.js';
+import { createQuotaMiddleware } from '../../middleware/quota.middleware.js';
+
 import { authenticate } from '../../middleware/auth.middleware.js';
 import { requireTenantContext } from '../../middleware/tenant.middleware.js';
 import { requireRole } from '../../middleware/role.middleware.js';
@@ -26,6 +28,7 @@ vehicleRouter.get('/:id', VehicleController.getVehicleById);
 vehicleRouter.post(
   '/',
   requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER', 'FLEET_MANAGER'),
+  createQuotaMiddleware('vehicles'),
   validateRequest({ body: createVehicleSchema }),
   VehicleController.createVehicle
 );

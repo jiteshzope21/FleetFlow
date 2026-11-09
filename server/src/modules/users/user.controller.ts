@@ -43,7 +43,7 @@ export class UserController {
       }
 
       const user = await UserService.createUser(req.companyId, req.body);
-      successResponse(res, user, 'User created successfully.', 201);
+      successResponse(res, user.toObject ? user.toObject() : user, 'User created successfully.', 201);
     } catch (err: any) {
       errorResponse(res, err.message, 400);
     }

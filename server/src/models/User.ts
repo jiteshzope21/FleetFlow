@@ -20,6 +20,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   role: UserRole;
+  tokenVersion: number;
   companyId?: mongoose.Types.ObjectId | null;
   status: UserStatus;
   phone?: string;
@@ -27,6 +28,7 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 const UserSchema = new Schema<IUser>(
   {
@@ -54,6 +56,7 @@ const UserSchema = new Schema<IUser>(
       default: 'VIEWER',
       index: true,
     },
+    tokenVersion: { type: Number, default: 0 },
     companyId: {
       type: Schema.Types.ObjectId,
       ref: 'Company',

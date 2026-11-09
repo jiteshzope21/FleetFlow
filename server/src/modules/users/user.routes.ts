@@ -4,13 +4,13 @@ import { authenticate } from '../../middleware/auth.middleware.js';
 import { requireTenantContext } from '../../middleware/tenant.middleware.js';
 import { requireRole } from '../../middleware/role.middleware.js';
 import { validateRequest } from '../../middleware/validate.middleware.js';
+import { createQuotaMiddleware } from '../../middleware/quota.middleware.js';
 import {
   createUserSchema,
   updateUserSchema,
   userQuerySchema,
   updateStatusSchema,
 } from './user.validator.js';
-
 export const userRouter = Router();
 
 userRouter.use(authenticate);
@@ -27,6 +27,7 @@ userRouter.get('/:id', UserController.getUserById);
 userRouter.post(
   '/',
   requireRole('SUPER_ADMIN', 'COMPANY_OWNER', 'MANAGER'),
+  createQuotaMiddleware('users'),
   validateRequest({ body: createUserSchema }),
   UserController.createUser
 );

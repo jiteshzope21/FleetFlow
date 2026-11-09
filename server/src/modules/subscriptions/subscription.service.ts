@@ -1,4 +1,4 @@
-import mongoose from 'express';
+import mongoose from 'mongoose';
 import mongoosePkg from 'mongoose';
 import { Subscription, ISubscription, ISubscriptionPayment } from '../../models/Subscription.js';
 import { Plan, IPlan } from '../../models/Plan.js';

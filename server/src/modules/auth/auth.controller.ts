@@ -1,3 +1,4 @@
+import { User } from '../../models/User.js';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { successResponse, errorResponse } from '../../utils/apiResponse.js';
@@ -34,8 +35,13 @@ export class AuthController {
     }
   }
 
-  static async logout(_req: Request, res: Response): Promise<void> {
-    // Client removes Bearer token; if cookies are used, clear cookie
+  static async logout(req: Request, res: Response): Promise<void> {
+    // Increment tokenVersion to revoke existing tokens
+    const userId = req.user?._id;
+    if (userId) {
+      await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
+    }
+    // Clear cookie
     res.clearCookie('fleetflow_token');
     successResponse(res, { loggedOut: true }, 'Logged out successfully.');
   }

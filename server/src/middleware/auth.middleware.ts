@@ -42,6 +42,14 @@ export async function authenticate(
       return;
     }
 
+    // Verify token version for revocation
+    if (payload.tokenVersion !== undefined && user.tokenVersion !== undefined) {
+      if (payload.tokenVersion !== user.tokenVersion) {
+        errorResponse(res, 'Authentication token has been revoked.', 401);
+        return;
+      }
+    }
+
     if (user.status !== 'ACTIVE') {
       errorResponse(res, 'Account is deactivated. Please contact your company administrator.', 403);
       return;

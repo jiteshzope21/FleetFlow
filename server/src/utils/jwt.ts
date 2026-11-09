@@ -6,7 +6,9 @@ export interface TokenPayload {
   email: string;
   role: string;
   companyId: string | null;
+  tokenVersion?: number;
 }
+
 
 export function generateAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, ENV.JWT_SECRET, {
