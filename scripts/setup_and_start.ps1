@@ -1,10 +1,10 @@
-# -------------------------------------------------
+
 # FleetFlow – One‑click setup & start script
-# -------------------------------------------------
+
 # This script makes sure the Node.js/npm installation is on the PATH,
 # installs exact dependencies, and launches the Express API.
 # Run it from a *new* PowerShell window after installing Node.js.
-# -------------------------------------------------
+
 
 # 1️⃣ Verify Node is present
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
